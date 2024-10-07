@@ -1,8 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from ..database.models import Comment, Product, User
-from ..schemas.comments import CommentCreate
-
+from ..schemas.comments import CommentCreate, CommentInfo
 
 class CommentsRepository:
     def create_comment(
@@ -31,14 +30,14 @@ class CommentsRepository:
 
         return new_comment
 
-    def get_comments_by_product(self, db: Session, product_id: int):
+    def get_comment_by_product_id(self, db: Session, product_id: int):
         """Retrieve all comments for a given product."""
         product = db.query(Product).filter(Product.id == product_id).first()
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
 
         comments = db.query(Comment).filter(Comment.product_id == product_id).all()
-        return comments
+        return [CommentInfo.from_orm(comment) for comment in comments]
 
     def get_comment_by_id(self, db: Session, comment_id: int):
         """Retrieve a specific comment by its ID."""

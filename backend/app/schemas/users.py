@@ -4,7 +4,7 @@ from pydantic_extra_types.phone_numbers import PhoneNumber
 
 
 class UserCreate(BaseModel):
-    username: str
+    fullname: str
     email: EmailStr
     phone: PhoneNumber = "+7 --- --- ----"
     password: str
@@ -13,7 +13,7 @@ class UserCreate(BaseModel):
     class Config:
         schema_extra = {
             "example": {
-                "username": "john_doe",
+                "fullname": "john_doe",
                 "email": "john@example.com",
                 "phone": "+7 123 456 7890",
                 "password": "password123",
@@ -21,8 +21,9 @@ class UserCreate(BaseModel):
             }
         }
 
+
 class UserUpdate(BaseModel):
-    username: Optional[str] = None
+    fullname: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[PhoneNumber] = None
     password: Optional[str] = None
@@ -35,7 +36,7 @@ class UserLogin(BaseModel):
 
 class UserInfo(BaseModel):
     id: int
-    username: str
+    fullname: str
     email: EmailStr
     phone: str
     role: str
