@@ -1,0 +1,20 @@
+# Ignore Python cache directories
+__pycache__/
+*.py[cod]
+
+# Ignore SQLite database files
+*.db
+*.sqlite3
+
+# Ignore virtual environment directories
+venv/
+.env
+
+# Ignore temporary and system files
+.DS_Store
+
+# Ignore test-related files and folders
+.pytest_cache/
+.mypy_cache/
+.coverage
+.tox/
