@@ -13,6 +13,10 @@ class CommentInfo(BaseModel):
     created_at: datetime
     author_id: int
 
+    class Config:
+        orm_mode = True
+        from_attributes = True
+
 
 class CommentInfoList(BaseModel):
     comments: List[CommentInfo]

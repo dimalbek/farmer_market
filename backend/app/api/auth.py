@@ -15,11 +15,14 @@ from ..utils.security import (
 router = APIRouter()
 users_repository = UsersRepository()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
+VALID_ROLES = {"Farmer", "Buyer", "Admin"}
 
 
 # Registration endpoint
 @router.post("/users")
 def post_signup(user_input: UserCreate, db: Session = Depends(get_db)):
+    if user_input.role not in VALID_ROLES:
+        raise HTTPException(status_code=400, detail=f"Invalid role: {user_input.role}. Allowed roles are: {', '.join(VALID_ROLES)}")
     user_input.password = hash_password(user_input.password)
     new_user = users_repository.create_user(db, user_input)
     return Response(
@@ -30,11 +33,11 @@ def post_signup(user_input: UserCreate, db: Session = Depends(get_db)):
 # Login endpoint using email
 @router.post("/users/login")
 def post_login(
-    email: EmailStr = Form(), password: str = Form(), db: Session = Depends(get_db)
+    username: EmailStr = Form(), password: str = Form(), db: Session = Depends(get_db)
 ):
-    user_data = UserLogin(email=email, password=password)
+    user_data = UserLogin(email=username, password=password)
     user = users_repository.get_user_by_email(db, user_data.email)
-    if not verify_password(password, user.password):
+    if not verify_password(password, user.password_hashed):
         raise HTTPException(
             status_code=401,
             detail="Incorrect password",
@@ -65,7 +68,7 @@ def get_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db))
     user = users_repository.get_user_by_id(db, user_id)
     return UserInfo(
         id=user_id,
-        username=user.username,
+        fullname=user.fullname,
         email=user.email,
         phone=user.phone,
         role=user.role,

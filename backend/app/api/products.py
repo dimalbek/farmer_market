@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, HTTPException
 from sqlalchemy.orm import Session
 from ..repositories.products import ProductsRepository
 from ..schemas.products import ProductCreate, ProductUpdate, ProductInfo
@@ -9,6 +9,14 @@ from ..utils.security import decode_jwt_token, check_user_role
 router = APIRouter()
 products_repository = ProductsRepository()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
+VALID_CATEGORIES = {
+    "Vegetables",
+    "Fruits",
+    "Seeds",
+    "Dairy",
+    "Meat",
+    "Equipment",
+}
 
 
 # Create a new product (Farmers and Admins)
@@ -18,6 +26,8 @@ def create_product(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ):
+    if product_input.category not in VALID_CATEGORIES:
+        raise HTTPException(status_code=400, detail=f"Invalid category: {product_input.category}. Allowed categories are: {', '.join(VALID_CATEGORIES)}")
     check_user_role(token, db, ["Farmer", "Admin"])
     user_id = decode_jwt_token(token)
     product = products_repository.create_product(db, product_input, user_id)

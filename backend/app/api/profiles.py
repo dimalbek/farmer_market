@@ -47,9 +47,9 @@ def get_profile(token: str = Depends(oauth2_scheme), db: Session = Depends(get_d
     # Use the 'profile' property
     profile = user.profile
 
-    if user.role == "Admin":
-        return {"message": "Admin users do not have a specific profile."}
-    elif not profile:
+    # if user.role == "Admin":
+    #     return {"message": "Admin users do not have a specific profile."}
+    if not profile:
         raise HTTPException(status_code=404, detail="Profile not found")
 
     return profile

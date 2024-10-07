@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from ..database.models import User
+from ..database.models import User, BuyerProfile, FarmerProfile
 from ..schemas.users import UserCreate, UserLogin, UserUpdate
 from ..schemas.buyers import BuyerProfileCreate
 from ..schemas.farmers import FarmerProfileCreate
@@ -18,10 +18,10 @@ class UsersRepository:
                 )
 
             new_user = User(
-                username=user_data.username,
+                fullname=user_data.fullname,
                 email=user_data.email,
                 phone=user_data.phone,
-                password=user_data.password,
+                password_hashed=user_data.password,
                 role=user_data.role,
             )
 
@@ -36,26 +36,36 @@ class UsersRepository:
         return new_user
 
     def create_profile(self, db: Session, user_id: int, profile_data):
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
 
-        if user.role == "Farmer":
-            profile = FarmerProfileCreate(
-                user_id=user.id,
-                farm_name=profile_data.farm_name,
-                location=profile_data.location,
-                farm_size=profile_data.farm_size,
-            )
-            db.add(profile)
+            if user.role == "Farmer" or (
+                user.role == "Admin" and len(profile_data.__fields__) == 3
+            ):
+                profile = FarmerProfile(
+                    user_id=user.id,
+                    farm_name=profile_data.farm_name,
+                    location=profile_data.location,
+                    farm_size=profile_data.farm_size,
+                )
+                db.add(profile)
 
-        elif user.role == "Buyer":
-            profile = BuyerProfileCreate(
-                user_id=user.id, delivery_address=profile_data.delivery_address
-            )
-            db.add(profile)
+            elif user.role == "Buyer" or (
+                user.role == "Admin" and len(profile_data.__fields__) == 1
+            ):
+                profile = BuyerProfile(
+                    user_id=user.id, delivery_address=profile_data.delivery_address
+                )
+                db.add(profile)
 
-        db.commit()
+            db.commit()
+            db.refresh(profile)
+
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(status_code=400, detail="Integrity error")
 
     def get_user_by_email(self, db: Session, email: str) -> User:
         """Get user by email (for login purposes)"""

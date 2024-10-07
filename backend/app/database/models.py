@@ -19,7 +19,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, nullable=False)
+    fullname = Column(String, unique=True, nullable=False)
     email = Column(String, unique=True, nullable=False)
     phone = Column(String, unique=True, nullable=False)
     password_hashed = Column(String, nullable=False)
@@ -31,7 +31,7 @@ class User(Base):
     buyer_profile = relationship("BuyerProfile", back_populates="user", uselist=False)
 
     # One-to-many relationships
-    posts = relationship("Post", back_populates="user")
+    # posts = relationship("Post", back_populates="user")
     comments = relationship("Comment", back_populates="user")
 
     @property
@@ -42,7 +42,10 @@ class User(Base):
         elif self.role == "Buyer":
             return self.buyer_profile
         else:
-            return None
+            return {
+                "farmer_profile": self.farmer_profile,
+                "buyer_profile": self.buyer_profile,
+            }
 
 
 class FarmerProfile(Base):
@@ -92,6 +95,7 @@ class Product(Base):
 
     farmer = relationship("FarmerProfile", back_populates="products")
     order_items = relationship("OrderItem", back_populates="product")
+    comments = relationship("Comment", back_populates="product")
 
 
 class Order(Base):
