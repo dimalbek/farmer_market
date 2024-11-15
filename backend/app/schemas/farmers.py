@@ -15,11 +15,6 @@ class FarmerProfileCreate(BaseModel):
             }
         }
 
-
-from pydantic import BaseModel
-from typing import Optional
-
-
 class FarmerInfo(BaseModel):
     id: int
     farm_name: str

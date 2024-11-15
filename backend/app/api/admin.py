@@ -4,15 +4,32 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from ..database.database import get_db
+from ..repositories.buyers import BuyersRepository
 from ..repositories.farmers import FarmersRepository
 from ..repositories.users import UsersRepository
+from ..schemas.buyers import BuyerProfileWithUserInfo, BuyerProfileInfo
 from ..schemas.farmers import FarmerInfo
 from ..schemas.users import FarmerProfileInfo, ProfileInfo, UserInfo, UserUpdate
 from ..utils.security import decode_jwt_token
 
-router = APIRouter()
-farmers_repository = FarmersRepository()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
+users_repository = UsersRepository()
+def admin_required(
+        token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
+    user_id = decode_jwt_token(token)
+    user = users_repository.get_user_by_id(db, user_id)
+    if user.role != "Admin":
+        raise HTTPException(status_code=403, detail="Insufficient permissions.")
+    return user
 
+farmers_repository = FarmersRepository()
+buyers_repository = BuyersRepository()
+router = APIRouter(
+    prefix="/admin",
+    tags=["admin"],
+    dependencies=[Depends(admin_required)],
+)
 
 # 1. Get all farmers with their data
 # @router.get("/", response_model=list[FarmerInfo])
@@ -22,7 +39,7 @@ farmers_repository = FarmersRepository()
 #     return farmers
 
 
-@router.get("/", response_model=list[FarmerProfileInfo])
+@router.get("/farmers", response_model=list[FarmerProfileInfo])
 def get_all_farmers(db: Session = Depends(get_db)):
     """
     Fetch all farmers with their profile data.
@@ -51,6 +68,34 @@ def get_all_farmers(db: Session = Depends(get_db)):
     return serialized_farmers
 
 
+@router.get("/buyers", response_model=list[BuyerProfileWithUserInfo])
+def get_all_buyers(db: Session = Depends(get_db)):
+    """
+    Fetch all buyers with their profile data.
+    """
+    # Fetch buyers with their user and profile data
+    buyers = buyers_repository.get_all_buyers(db)
+    serialized_buyers = [
+        BuyerProfileWithUserInfo(
+            id=buyer.id,
+            fullname=buyer.fullname,
+            email=buyer.email,
+            phone=buyer.phone,
+            role=buyer.role,
+            profile=(
+                BuyerProfileInfo(
+                    delivery_address=buyer.buyer_profile.delivery_address,
+                    user_id=buyer.buyer_profile.user_id,
+                )
+                if buyer.buyer_profile
+                else None
+            ),
+        )
+        for buyer in buyers
+    ]
+    return serialized_buyers
+
+
 # # 2. Approve a farmer profile by user_id
 # @router.patch("/{user_id}/approve")
 # def approve_farmer(user_id: int, db: Session = Depends(get_db)):
@@ -74,23 +119,6 @@ def approve_farmer(user_id: int, is_approved: bool, db: Session = Depends(get_db
 
     status_message = "approved" if is_approved else "disapproved"
     return {"message": f"Farmer profile for user_id {user_id} has been {status_message}."}
-
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
-router = APIRouter(prefix="/admin", tags=["admin"])
-users_repository = UsersRepository()
-
-
-# Dependency to ensure the user is an admin
-def admin_required(
-        token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
-):
-    user_id = decode_jwt_token(token)
-    user = users_repository.get_user_by_id(db, user_id)
-    if user.role != "Admin":
-        raise HTTPException(status_code=403, detail="Insufficient permissions.")
-    return user
-
 
 # Endpoint to get all users
 @router.get("/users", response_model=List[UserInfo])
