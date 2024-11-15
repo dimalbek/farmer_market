@@ -46,11 +46,26 @@ def get_all_farmers(db: Session = Depends(get_db)):
     return serialized_farmers
 
 
-# 2. Approve a farmer profile by user_id
+# # 2. Approve a farmer profile by user_id
+# @router.patch("/{user_id}/approve")
+# def approve_farmer(user_id: int, db: Session = Depends(get_db)):
+#     """Set is_approved to True for a farmer profile by user_id."""
+#     farmer = farmers_repository.approve_farmer(db, user_id)
+#     if not farmer:
+#         raise HTTPException(status_code=404, detail="Farmer profile not found")
+#     return {"message": f"Farmer profile for user_id {user_id} approved successfully"}
+
 @router.patch("/{user_id}/approve")
-def approve_farmer(user_id: int, db: Session = Depends(get_db)):
-    """Set is_approved to True for a farmer profile by user_id."""
-    farmer = farmers_repository.approve_farmer(db, user_id)
+def approve_farmer(user_id: int, is_approved: bool, db: Session = Depends(get_db)):
+    """
+    Set is_approved to True or False for a farmer profile by user_id.
+    
+    Query Parameter:
+    - is_approved (bool): The new approval status.
+    """
+    farmer = farmers_repository.update_farmer_approval(db, user_id, is_approved)
     if not farmer:
         raise HTTPException(status_code=404, detail="Farmer profile not found")
-    return {"message": f"Farmer profile for user_id {user_id} approved successfully"}
+    
+    status_message = "approved" if is_approved else "disapproved"
+    return {"message": f"Farmer profile for user_id {user_id} has been {status_message}."}

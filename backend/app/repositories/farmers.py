@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 from ..database.models import User
 
+
 class FarmersRepository:
     # def get_all_farmers(self, db: Session):
     #     """Retrieve all farmers with their data."""
@@ -27,7 +28,9 @@ class FarmersRepository:
 
     def approve_farmer(self, db: Session, user_id: int):
         """Set is_approved to True for a farmer profile by user_id."""
-        farmer = db.query(FarmerProfile).filter(FarmerProfile.user_id == user_id).first()
+        farmer = (
+            db.query(FarmerProfile).filter(FarmerProfile.user_id == user_id).first()
+        )
         if not farmer:
             return None
 
@@ -37,5 +40,29 @@ class FarmersRepository:
             db.refresh(farmer)
         except IntegrityError:
             db.rollback()
-            raise HTTPException(status_code=500, detail="Error updating farmer approval status")
+            raise HTTPException(
+                status_code=500, detail="Error updating farmer approval status"
+            )
+        return farmer
+
+    def update_farmer_approval(self, db: Session, user_id: int, is_approved: bool):
+        """
+        Set is_approved to the given boolean value for a farmer profile by user_id.
+        """
+        farmer = (
+            db.query(FarmerProfile).filter(FarmerProfile.user_id == user_id).first()
+        )
+        if not farmer:
+            return None
+
+        farmer.is_approved = is_approved
+        try:
+            db.commit()
+            db.refresh(farmer)
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(
+                status_code=500, detail="Error updating farmer approval status"
+            )
+
         return farmer
