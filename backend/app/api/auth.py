@@ -31,6 +31,7 @@ EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
 EMAIL_USER = os.getenv("EMAIL_USER", "your_email@example.com")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "your_email_password")
 
+
 # Registration endpoint
 @router.post("/users", status_code=200)
 def post_signup(user_input: UserCreate, db: Session = Depends(get_db)):
