@@ -5,6 +5,7 @@ from app.api.profiles import router as profiles_router
 from app.api.comments import router as comments_router
 from app.api.orders import router as orders_router
 from app.api.chat import router as chat_router
+from app.api.admin import router as admin_router
 from fastapi.middleware.cors import CORSMiddleware
 import requests
 import time
@@ -28,6 +29,8 @@ app.include_router(profiles_router, prefix="/profiles", tags=["profiles"])
 app.include_router(comments_router, prefix="/comments", tags=["comments"])
 app.include_router(orders_router, prefix="/orders", tags=["orders"])
 app.include_router(chat_router, prefix="/chat", tags=["chat"])
+app.include_router(admin_router, prefix="/admin", tags=["admin"])
+
 @app.get("/healthcheck")
 def health_check():
     return {"status": "ok"}
