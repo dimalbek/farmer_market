@@ -88,6 +88,13 @@ class UsersRepository:
         except IntegrityError:
             db.rollback()
             raise HTTPException(status_code=400, detail="Integrity error")
+        return {
+            "id": db_user.id,
+            "fullname": db_user.fullname,
+            "email": db_user.email,
+            "phone": db_user.phone,
+            "role": db_user.role,  # Assuming role is part of the User model
+        }
 
     def get_user_by_id(self, db: Session, user_id: int) -> User:
         user = db.query(User).filter(User.id == user_id).first()
