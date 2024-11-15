@@ -56,6 +56,7 @@ class FarmerProfile(Base):
     location = Column(String, nullable=False)
     farm_size = Column(Float, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))
+    is_approved = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="farmer_profile")
     products = relationship("Product", back_populates="farmer")
