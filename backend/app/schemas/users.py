@@ -26,7 +26,6 @@ class UserUpdate(BaseModel):
     fullname: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[PhoneNumber] = None
-    password: Optional[str] = None
 
 
 class UserLogin(BaseModel):
@@ -40,3 +39,13 @@ class UserInfo(BaseModel):
     email: EmailStr
     phone: str
     role: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: Optional[EmailStr] = None
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
+
