@@ -53,3 +53,39 @@ def get_profile(token: str = Depends(oauth2_scheme), db: Session = Depends(get_d
         raise HTTPException(status_code=404, detail="Profile not found")
 
     return profile
+
+
+# @router.get("/me", response_model=UserProfileInfo, status_code=200)
+# def get_user_and_profile(
+#         token: str = Depends(oauth2_scheme),
+#         db: Session = Depends(get_db)
+# ):
+#     """
+#     Return user info along with the profile.
+#     """
+#     # Decode token to get user ID
+#     user_id = decode_jwt_token(token)
+#
+#     # Fetch user
+#     user = users_repository.get_user_by_id(db, user_id)
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found")
+#
+#     # Fetch profile
+#     profile = user.profile
+#     if not profile:
+#         raise HTTPException(status_code=404, detail="Profile not found")
+#
+#     # Combine user info and profile
+#     return UserProfileInfo(
+#         id=user.id,
+#         fullname=user.fullname,
+#         email=user.email,
+#         phone=user.phone,
+#         role=user.role,
+#         profile=ProfileInfo(
+#             farm_name=profile.farm_name,
+#             location=profile.location,
+#             farm_size=profile.farm_size
+#         ),
+#     )
