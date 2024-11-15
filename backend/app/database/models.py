@@ -151,3 +151,24 @@ class Payment(Base):
     )
 
     order = relationship("Order", back_populates="payment")
+
+
+class Chat(Base):
+    __tablename__ = "chats"
+
+    id = Column(Integer, primary_key=True, index=True)
+    buyer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    farmer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    messages = relationship("Message", back_populates="chat")
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    content = Column(Text, nullable=False)
+
+    chat = relationship("Chat", back_populates="messages")
