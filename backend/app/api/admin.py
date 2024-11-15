@@ -122,9 +122,7 @@ def approve_farmer(user_id: int, is_approved: bool, db: Session = Depends(get_db
 
 # Endpoint to get all users
 @router.get("/users", response_model=List[UserInfo])
-def get_all_users(
-        current_user=Depends(admin_required), db: Session = Depends(get_db)
-):
+def get_all_users( db: Session = Depends(get_db)):
     users = users_repository.get_all_users(db)
     return [
         UserInfo(
@@ -142,7 +140,6 @@ def get_all_users(
 @router.get("/users/{user_id}", response_model=UserInfo)
 def get_user_by_id(
         user_id: int,
-        current_user=Depends(admin_required),
         db: Session = Depends(get_db),
 ):
     user = users_repository.get_user_by_id(db, user_id)
@@ -160,7 +157,6 @@ def get_user_by_id(
 def update_user(
         user_id: int,
         user_input: UserUpdate,
-        current_user=Depends(admin_required),
         db: Session = Depends(get_db),
 ):
     updated_user = users_repository.update_user(db, user_id, user_input)
@@ -174,7 +170,6 @@ def update_user(
 @router.delete("/users/{user_id}")
 def delete_user(
         user_id: int,
-        current_user=Depends(admin_required),
         db: Session = Depends(get_db),
 ):
     users_repository.delete_user(db, user_id)
