@@ -4,7 +4,8 @@ from ..repositories.products import ProductsRepository
 from ..schemas.products import ProductCreate, ProductUpdate, ProductInfo
 from ..database.database import get_db
 from fastapi.security import OAuth2PasswordBearer
-from ..utils.security import decode_jwt_token, check_user_role
+from ..utils.security import decode_jwt_token, check_user_role, check_farmer_approval
+from ..database.models import User
 
 router = APIRouter()
 products_repository = ProductsRepository()
@@ -25,6 +26,7 @@ def create_product(
     product_input: ProductCreate,
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
+    farmer: User = Depends(check_farmer_approval)
 ):
     """
     Create a new product.

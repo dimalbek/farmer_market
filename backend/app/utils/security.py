@@ -1,9 +1,12 @@
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from ..repositories.users import UsersRepository
+from ..database.database import get_db
+from ..database.models import User
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -60,3 +63,19 @@ def check_user_role(token: str, db: Session, allowed_roles: list):
         )
 
     return user_id
+
+
+def check_farmer_approval(user_id: int, db: Session = Depends(get_db)):
+    """
+    Verify that the user is a farmer with is_approved=True.
+    """
+    user = db.query(User).filter(User.id == user_id, User.role == "Farmer").first()
+    if not user:
+        raise HTTPException(
+            status_code=403, detail="Access forbidden: User is not a farmer."
+        )
+    if not user.farmer_profile or not user.farmer_profile.is_approved:
+        raise HTTPException(
+            status_code=403, detail="Access forbidden: Farmer is not approved."
+        )
+    return user
