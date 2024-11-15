@@ -29,7 +29,7 @@ app.include_router(profiles_router, prefix="/profiles", tags=["profiles"])
 app.include_router(comments_router, prefix="/comments", tags=["comments"])
 app.include_router(orders_router, prefix="/orders", tags=["orders"])
 app.include_router(chat_router, prefix="/chat", tags=["chat"])
-app.include_router(admin_router, prefix="/admin", tags=["admin"])
+app.include_router(admin_router)
 
 @app.get("/healthcheck")
 def health_check():
