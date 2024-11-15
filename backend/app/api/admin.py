@@ -1,9 +1,14 @@
+from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from ..database.database import get_db
 from ..repositories.farmers import FarmersRepository
+from ..repositories.users import UsersRepository
 from ..schemas.farmers import FarmerInfo
-from ..schemas.users import FarmerProfileInfo, ProfileInfo
+from ..schemas.users import FarmerProfileInfo, ProfileInfo, UserInfo, UserUpdate
+from ..utils.security import decode_jwt_token
 
 router = APIRouter()
 farmers_repository = FarmersRepository()
@@ -66,6 +71,83 @@ def approve_farmer(user_id: int, is_approved: bool, db: Session = Depends(get_db
     farmer = farmers_repository.update_farmer_approval(db, user_id, is_approved)
     if not farmer:
         raise HTTPException(status_code=404, detail="Farmer profile not found")
-    
+
     status_message = "approved" if is_approved else "disapproved"
     return {"message": f"Farmer profile for user_id {user_id} has been {status_message}."}
+
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
+router = APIRouter(prefix="/admin", tags=["admin"])
+users_repository = UsersRepository()
+
+
+# Dependency to ensure the user is an admin
+def admin_required(
+        token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+):
+    user_id = decode_jwt_token(token)
+    user = users_repository.get_user_by_id(db, user_id)
+    if user.role != "Admin":
+        raise HTTPException(status_code=403, detail="Insufficient permissions.")
+    return user
+
+
+# Endpoint to get all users
+@router.get("/users", response_model=List[UserInfo])
+def get_all_users(
+        current_user=Depends(admin_required), db: Session = Depends(get_db)
+):
+    users = users_repository.get_all_users(db)
+    return [
+        UserInfo(
+            id=user.id,
+            fullname=user.fullname,
+            email=user.email,
+            phone=str(user.phone),
+            role=user.role,
+        )
+        for user in users
+    ]
+
+
+# Endpoint to get a user by ID
+@router.get("/users/{user_id}", response_model=UserInfo)
+def get_user_by_id(
+        user_id: int,
+        current_user=Depends(admin_required),
+        db: Session = Depends(get_db),
+):
+    user = users_repository.get_user_by_id(db, user_id)
+    return UserInfo(
+        id=user.id,
+        fullname=user.fullname,
+        email=user.email,
+        phone=str(user.phone),
+        role=user.role,
+    )
+
+
+# Endpoint to update a user
+@router.patch("/users/{user_id}")
+def update_user(
+        user_id: int,
+        user_input: UserUpdate,
+        current_user=Depends(admin_required),
+        db: Session = Depends(get_db),
+):
+    updated_user = users_repository.update_user(db, user_id, user_input)
+    return {
+        "message": "User updated successfully",
+        "user": updated_user,
+    }
+
+
+# Endpoint to delete a user
+@router.delete("/users/{user_id}")
+def delete_user(
+        user_id: int,
+        current_user=Depends(admin_required),
+        db: Session = Depends(get_db),
+):
+    users_repository.delete_user(db, user_id)
+    return {"message": f"User with ID {user_id} has been deleted successfully."}
