@@ -4,10 +4,12 @@ from ..database.database import get_db
 from ..repositories.farmers import FarmersRepository
 from ..schemas.farmers import FarmerInfo
 from ..schemas.users import FarmerProfileInfo, ProfileInfo
+from ..repositories.buyers import BuyersRepository
+from ..schemas.buyers import BuyerProfileWithUserInfo, BuyerProfileInfo
 
 router = APIRouter()
 farmers_repository = FarmersRepository()
-
+buyers_repository = BuyersRepository()
 
 # 1. Get all farmers with their data
 # @router.get("/", response_model=list[FarmerInfo])
@@ -31,19 +33,49 @@ def get_all_farmers(db: Session = Depends(get_db)):
             email=farmer.email,
             phone=farmer.phone,
             role=farmer.role,
-            profile=ProfileInfo(
-                farm_name=farmer.farmer_profile.farm_name,
-                location=farmer.farmer_profile.location,
-                farm_size=farmer.farmer_profile.farm_size,
-                is_approved=farmer.farmer_profile.is_approved,
-                user_id=farmer.farmer_profile.user_id,
-            )
-            if farmer.farmer_profile
-            else None,
+            profile=(
+                ProfileInfo(
+                    farm_name=farmer.farmer_profile.farm_name,
+                    location=farmer.farmer_profile.location,
+                    farm_size=farmer.farmer_profile.farm_size,
+                    is_approved=farmer.farmer_profile.is_approved,
+                    user_id=farmer.farmer_profile.user_id,
+                )
+                if farmer.farmer_profile
+                else None
+            ),
         )
         for farmer in farmers
     ]
     return serialized_farmers
+
+
+@router.get("/buyers", response_model=list[BuyerProfileWithUserInfo])
+def get_all_buyers(db: Session = Depends(get_db)):
+    """
+    Fetch all buyers with their profile data.
+    """
+    # Fetch buyers with their user and profile data
+    buyers = buyers_repository.get_all_buyers(db)
+    serialized_buyers = [
+        BuyerProfileWithUserInfo(
+            id=buyer.id,
+            fullname=buyer.fullname,
+            email=buyer.email,
+            phone=buyer.phone,
+            role=buyer.role,
+            profile=(
+                BuyerProfileInfo(
+                    delivery_address=buyer.buyer_profile.delivery_address,
+                    user_id=buyer.buyer_profile.user_id,
+                )
+                if buyer.buyer_profile
+                else None
+            ),
+        )
+        for buyer in buyers
+    ]
+    return serialized_buyers
 
 
 # # 2. Approve a farmer profile by user_id
@@ -55,17 +87,20 @@ def get_all_farmers(db: Session = Depends(get_db)):
 #         raise HTTPException(status_code=404, detail="Farmer profile not found")
 #     return {"message": f"Farmer profile for user_id {user_id} approved successfully"}
 
+
 @router.patch("/{user_id}/approve")
 def approve_farmer(user_id: int, is_approved: bool, db: Session = Depends(get_db)):
     """
     Set is_approved to True or False for a farmer profile by user_id.
-    
+
     Query Parameter:
     - is_approved (bool): The new approval status.
     """
     farmer = farmers_repository.update_farmer_approval(db, user_id, is_approved)
     if not farmer:
         raise HTTPException(status_code=404, detail="Farmer profile not found")
-    
+
     status_message = "approved" if is_approved else "disapproved"
-    return {"message": f"Farmer profile for user_id {user_id} has been {status_message}."}
+    return {
+        "message": f"Farmer profile for user_id {user_id} has been {status_message}."
+    }
