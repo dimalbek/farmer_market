@@ -112,6 +112,7 @@ class Order(Base):
 
     buyer = relationship("BuyerProfile", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
+    payment = relationship("Payment", back_populates="order", uselist=False)
 
 
 class OrderItem(Base):
@@ -137,3 +138,16 @@ class Comment(Base):
 
     user = relationship("User", back_populates="comments")
     product = relationship("Product", back_populates="comments")
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    amount = Column(Float, nullable=False)
+    status = Column(
+        Enum("Pending", "Completed", "Failed", name="payment_status"), nullable=False
+    )
+
+    order = relationship("Order", back_populates="payment")
