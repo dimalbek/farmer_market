@@ -53,3 +53,33 @@ class ProductsRepository:
         db.delete(product)
         db.commit()
         return product
+    
+    def get_products_by_farmer_id(self, db: Session, farmer_id: int):
+        """Retrieve all products associated with a specific farmer."""
+        products = db.query(Product).filter(Product.farmer_id == farmer_id).all()
+        return products
+
+
+    def search_products(
+        self,
+        db: Session,
+        category: str = None,
+        price_from: float = 0.0,
+        price_until: float = -1.0,
+        quantity_from: int = 0,
+        quantity_until: int = -1,
+    ):
+        """Search for products based on various filters."""
+        query = db.query(Product)
+
+        if category:
+            query = query.filter(Product.category == category)
+        if price_until != -1.0:
+            query = query.filter(Product.price <= price_until)
+        query = query.filter(Product.price >= price_from)
+
+        if quantity_until != -1:
+            query = query.filter(Product.quantity <= quantity_until)
+        query = query.filter(Product.quantity >= quantity_from)
+
+        return query.all()

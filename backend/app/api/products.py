@@ -62,3 +62,38 @@ def delete_product(
     check_user_role(token, db, ["Farmer", "Admin"])
     deleted_product = products_repository.delete_product(db, product_id)
     return Response(content=f"Product with id {product_id} deleted", status_code=200)
+
+
+# Get all products of a farmer by farmer ID
+@router.get("/farmer/{farmer_id}", response_model=list[ProductInfo])
+def get_products_by_farmer(farmer_id: int, db: Session = Depends(get_db)):
+    """Fetch all products belonging to a specific farmer."""
+    products = products_repository.get_products_by_farmer_id(db, farmer_id)
+    if not products:
+        raise HTTPException(status_code=404, detail="No products found for this farmer")
+    return products
+
+
+@router.get("/search", response_model=list[ProductInfo])
+def search_products(
+    db: Session = Depends(get_db),
+    category: str = None,
+    price_from: float = 0.0,
+    price_until: float = -1.0,
+    quantity_from: int = 0,
+    quantity_until: int = -1,
+):
+    """
+    Search for products based on category, price range, and quantity range.
+
+    Parameters:
+    - `category`: Filter products by category.
+    - `price_from`: Minimum price.
+    - `price_until`: Maximum price (use -1 for no upper limit).
+    - `quantity_from`: Minimum quantity.
+    - `quantity_until`: Maximum quantity (use -1 for no upper limit).
+    """
+    products = products_repository.search_products(
+        db, category, price_from, price_until, quantity_from, quantity_until
+    )
+    return products
