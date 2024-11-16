@@ -78,6 +78,7 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)  # Add this line
     category = Column(
         Enum(
             "Vegetables",
@@ -93,11 +94,20 @@ class Product(Base):
     price = Column(Float, nullable=False)
     quantity = Column(Integer, nullable=False)
     farmer_id = Column(Integer, ForeignKey("farmer_profiles.id"))
-
     farmer = relationship("FarmerProfile", back_populates="products")
     order_items = relationship("OrderItem", back_populates="product")
     comments = relationship("Comment", back_populates="product")
+    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
 
+
+class ProductImage(Base):
+    __tablename__ = "product_images"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    image_url = Column(String, nullable=False)
+
+    product = relationship("Product", back_populates="images")
 
 class Order(Base):
     __tablename__ = "orders"

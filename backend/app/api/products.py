@@ -1,49 +1,64 @@
-from fastapi import APIRouter, Depends, Response, HTTPException
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, Response, HTTPException, File, UploadFile, Form
 from sqlalchemy.orm import Session
 from ..repositories.products import ProductsRepository
 from ..schemas.products import ProductCreate, ProductUpdate, ProductInfo
 from ..database.database import get_db
 from fastapi.security import OAuth2PasswordBearer
+
+from ..utils.file_upload import save_product_images
 from ..utils.security import decode_jwt_token, check_user_role, check_farmer_approval
 from ..database.models import User
 
 router = APIRouter()
 products_repository = ProductsRepository()
+VALID_CATEGORIES = {"Vegetables", "Fruits", "Seeds", "Dairy", "Meat", "Equipment"}
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
-VALID_CATEGORIES = {
-    "Vegetables",
-    "Fruits",
-    "Seeds",
-    "Dairy",
-    "Meat",
-    "Equipment",
-}
 
 
-# Create a new product (Farmers and Admins)
-@router.post("/", status_code=200)
+@router.post("/", response_model=ProductInfo, status_code=201)
 def create_product(
-    product_input: ProductCreate,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
-    farmer: User = Depends(check_farmer_approval)
+        name: str = Form(...),
+        quantity: int = Form(...),
+        category: str = Form(...),
+        description: Optional[str] = Form(None),
+        price: float = Form(...),
+        images: List[UploadFile] = File(...),
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(get_db),
+        farmer: User = Depends(check_farmer_approval)
 ):
     """
-    Create a new product.
-
-    - **product_input**: The details of the product to create (name, category, price, etc.).
-    - **token**: The access token of the user (must be a Farmer or Admin).
-    - **db**: Database session.
-
-    Returns:
-    - A success message with the created product's ID.
+    Create a new product with multiple images.
     """
-    if product_input.category not in VALID_CATEGORIES:
-        raise HTTPException(status_code=400, detail=f"Invalid category: {product_input.category}. Allowed categories are: {', '.join(VALID_CATEGORIES)}")
-    check_user_role(token, db, ["Farmer", "Admin"])
+    if category not in VALID_CATEGORIES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid category: {category}. Allowed categories are: {', '.join(VALID_CATEGORIES)}"
+        )
+
+    # Verify user role
     user_id = decode_jwt_token(token)
-    product = products_repository.create_product(db, product_input, user_id)
-    return Response(content=f"Product with id {product.id} created", status_code=200)
+    check_user_role(token, db, ["Farmer", "Admin"])
+
+    # Save images and get their URLs
+    image_urls = save_product_images(images)
+
+    # Create the product input data
+    product_input = ProductCreate(
+        name=name,
+        category=category,
+        price=price,
+        quantity=quantity,
+        description=description
+    )
+
+    # Create the product
+    product = products_repository.create_product(db, product_input, user_id, image_urls)
+
+    # Return the product data as JSON
+    return product
 
 
 # Get a product by its ID
@@ -65,10 +80,10 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
 # Update a product (Farmers and Admins)
 @router.patch("/{product_id}", status_code=200)
 def update_product(
-    product_id: int,
-    product_input: ProductUpdate,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
+        product_id: int,
+        product_input: ProductUpdate,
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(get_db),
 ):
     """
     Update an existing product.
@@ -89,7 +104,7 @@ def update_product(
 # Delete a product (Farmers and Admins)
 @router.delete("/{product_id}", status_code=200)
 def delete_product(
-    product_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+        product_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
 ):
     """
     Delete an existing product.
@@ -126,12 +141,12 @@ def get_products_by_farmer(farmer_id: int, db: Session = Depends(get_db)):
 
 @router.get("/search", response_model=list[ProductInfo])
 def search_products(
-    db: Session = Depends(get_db),
-    category: str = None,
-    price_from: float = 0.0,
-    price_until: float = -1.0,
-    quantity_from: int = 0,
-    quantity_until: int = -1,
+        db: Session = Depends(get_db),
+        category: str = None,
+        price_from: float = 0.0,
+        price_until: float = -1.0,
+        quantity_from: int = 0,
+        quantity_until: int = -1,
 ):
     """
     Search for products based on category, price range, and quantity range.

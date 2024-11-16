@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from app.api.auth import router as auth_router
 from app.api.products import router as products_router
 from app.api.profiles import router as profiles_router
@@ -30,7 +31,7 @@ app.include_router(comments_router, prefix="/comments", tags=["comments"])
 app.include_router(orders_router, prefix="/orders", tags=["orders"])
 app.include_router(chat_router, prefix="/chat", tags=["chat"])
 app.include_router(admin_router)
-
+app.mount("/static", StaticFiles(directory="uploaded_images"), name="static")
 @app.get("/healthcheck")
 def health_check():
     return {"status": "ok"}
