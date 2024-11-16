@@ -1,27 +1,36 @@
-from fastapi import HTTPException
+import os
+from uuid import uuid4
+
+from fastapi import HTTPException, UploadFile
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from ..database.models import Product
+from ..database.models import Product, FarmerProfile, ProductImage
 from ..schemas.products import ProductCreate, ProductUpdate
 from typing import List
 
 
 class ProductsRepository:
-    def create_product(self, db: Session, product_data: ProductCreate, farmer_id: int):
-        try:
-            new_product = Product(
-                name=product_data.name,
-                category=product_data.category,
-                price=product_data.price,
-                quantity=product_data.quantity,
-                farmer_id=farmer_id,
-            )
-            db.add(new_product)
-            db.commit()
-            db.refresh(new_product)
-        except IntegrityError:
-            db.rollback()
-            raise HTTPException(status_code=400, detail="Product creation error")
+    def create_product(self, db: Session, product_input: ProductCreate, user_id: int, image_urls: List[str]):
+        farmer_profile = db.query(FarmerProfile).filter(FarmerProfile.user_id == user_id).first()
+        if not farmer_profile:
+            raise HTTPException(status_code=404, detail="Farmer profile not found.")
+
+        new_product = Product(
+            name=product_input.name,
+            category=product_input.category,
+            price=product_input.price,
+            quantity=product_input.quantity,
+            description=product_input.description,
+            farmer_id=farmer_profile.id
+        )
+
+        # Create ProductImage instances
+        product_images = [ProductImage(image_url=url) for url in image_urls]
+        new_product.images = product_images
+
+        db.add(new_product)
+        db.commit()
+        db.refresh(new_product)
         return new_product
 
     def get_product_by_id(self, db: Session, product_id: int) -> Product:
@@ -83,3 +92,6 @@ class ProductsRepository:
         query = query.filter(Product.quantity >= quantity_from)
 
         return query.all()
+
+
+UPLOAD_DIRECTORY = "uploaded_images"
