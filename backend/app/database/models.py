@@ -33,6 +33,7 @@ class User(Base):
     # One-to-many relationships
     # posts = relationship("Post", back_populates="user")
     comments = relationship("Comment", back_populates="user")
+    cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
 
     @property
     def profile(self):
@@ -98,7 +99,7 @@ class Product(Base):
     order_items = relationship("OrderItem", back_populates="product")
     comments = relationship("Comment", back_populates="product")
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
-
+    cart_items = relationship("CartItem", back_populates="product", cascade="all, delete-orphan")
 
 class ProductImage(Base):
     __tablename__ = "product_images"
@@ -183,3 +184,15 @@ class Message(Base):
     content = Column(Text, nullable=False)
 
     chat = relationship("Chat", back_populates="messages")
+
+
+class CartItem(Base):
+    __tablename__ = "cart_items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    product_id = Column(Integer, ForeignKey("products.id"))
+    quantity = Column(Integer, nullable=False)
+
+    user = relationship("User", back_populates="cart_items")
+    product = relationship("Product")
