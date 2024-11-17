@@ -26,7 +26,6 @@ class UserUpdate(BaseModel):
     fullname: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[PhoneNumber] = None
-    password: Optional[str] = None
 
 
 class UserLogin(BaseModel):
@@ -40,3 +39,28 @@ class UserInfo(BaseModel):
     email: EmailStr
     phone: str
     role: str
+
+
+class ProfileInfo(BaseModel):
+    farm_name: str
+    location: str
+    farm_size: float
+    is_approved: bool
+    user_id: int
+
+class FarmerProfileInfo(BaseModel):
+    id: int
+    fullname: str
+    email: EmailStr
+    phone: str
+    role: str
+    profile: Optional[ProfileInfo]
+
+
+class PasswordResetRequest(BaseModel):
+    email: Optional[EmailStr] = None
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str

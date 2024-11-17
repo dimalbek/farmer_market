@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -42,7 +44,7 @@ class UsersRepository:
                 raise HTTPException(status_code=404, detail="User not found")
 
             if user.role == "Farmer" or (
-                user.role == "Admin" and len(profile_data.__fields__) == 3
+                    user.role == "Admin" and len(profile_data.__fields__) == 3
             ):
                 profile = FarmerProfile(
                     user_id=user.id,
@@ -53,7 +55,7 @@ class UsersRepository:
                 db.add(profile)
 
             elif user.role == "Buyer" or (
-                user.role == "Admin" and len(profile_data.__fields__) == 1
+                    user.role == "Admin" and len(profile_data.__fields__) == 1
             ):
                 profile = BuyerProfile(
                     user_id=user.id, delivery_address=profile_data.delivery_address
@@ -88,9 +90,28 @@ class UsersRepository:
         except IntegrityError:
             db.rollback()
             raise HTTPException(status_code=400, detail="Integrity error")
+        return {
+            "id": db_user.id,
+            "fullname": db_user.fullname,
+            "email": db_user.email,
+            "phone": db_user.phone,
+            "role": db_user.role,  # Assuming role is part of the User model
+        }
 
     def get_user_by_id(self, db: Session, user_id: int) -> User:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         return user
+
+    def get_all_users(self, db: Session) -> List[User]:
+        """Get all users from the database."""
+        return db.query(User).all()
+
+    def delete_user(self, db: Session, user_id: int):
+        """Delete a user by their ID."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        db.delete(user)
+        db.commit()

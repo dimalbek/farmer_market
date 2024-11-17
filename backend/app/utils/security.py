@@ -1,17 +1,22 @@
 from passlib.context import CryptContext
 from jose import jwt, JWTError
 from datetime import datetime, timedelta
-from fastapi import HTTPException
+from fastapi import HTTPException, Depends
 from sqlalchemy.orm import Session
 from ..repositories.users import UsersRepository
+from ..database.database import get_db
+from ..database.models import User
+from fastapi.security import OAuth2PasswordBearer
+
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 SECRET_KEY = "Messi>Ronaldo"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 
 users_repository = UsersRepository()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
 
 
 def hash_password(password: str) -> str:
@@ -60,3 +65,23 @@ def check_user_role(token: str, db: Session, allowed_roles: list):
         )
 
     return user_id
+
+
+def check_farmer_approval(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """
+    Verify that the user is a farmer with is_approved=True using the JWT token.
+    """
+    # Decode the JWT token to get user_id
+    user_id = decode_jwt_token(token)
+
+    # Check if the user is a farmer and approved
+    user = db.query(User).filter(User.id == user_id, User.role == "Farmer").first()
+    if not user:
+        raise HTTPException(
+            status_code=403, detail="Access forbidden: User is not a farmer."
+        )
+    if not user.farmer_profile or not user.farmer_profile.is_approved:
+        raise HTTPException(
+            status_code=403, detail="Access forbidden: Farmer is not approved."
+        )
+    return user

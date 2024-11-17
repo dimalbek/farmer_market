@@ -19,7 +19,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    fullname = Column(String, unique=True, nullable=False)
+    fullname = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
     phone = Column(String, unique=True, nullable=False)
     password_hashed = Column(String, nullable=False)
@@ -56,6 +56,7 @@ class FarmerProfile(Base):
     location = Column(String, nullable=False)
     farm_size = Column(Float, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))
+    is_approved = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="farmer_profile")
     products = relationship("Product", back_populates="farmer")
@@ -77,6 +78,7 @@ class Product(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)  # Add this line
     category = Column(
         Enum(
             "Vegetables",
@@ -92,11 +94,20 @@ class Product(Base):
     price = Column(Float, nullable=False)
     quantity = Column(Integer, nullable=False)
     farmer_id = Column(Integer, ForeignKey("farmer_profiles.id"))
-
     farmer = relationship("FarmerProfile", back_populates="products")
     order_items = relationship("OrderItem", back_populates="product")
     comments = relationship("Comment", back_populates="product")
+    images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan")
 
+
+class ProductImage(Base):
+    __tablename__ = "product_images"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=False)
+    image_url = Column(String, nullable=False)
+
+    product = relationship("Product", back_populates="images")
 
 class Order(Base):
     __tablename__ = "orders"
@@ -112,6 +123,7 @@ class Order(Base):
 
     buyer = relationship("BuyerProfile", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
+    payment = relationship("Payment", back_populates="order", uselist=False)
 
 
 class OrderItem(Base):
@@ -137,3 +149,37 @@ class Comment(Base):
 
     user = relationship("User", back_populates="comments")
     product = relationship("Product", back_populates="comments")
+
+
+class Payment(Base):
+    __tablename__ = "payments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    order_id = Column(Integer, ForeignKey("orders.id"))
+    amount = Column(Float, nullable=False)
+    status = Column(
+        Enum("Pending", "Completed", "Failed", name="payment_status"), nullable=False
+    )
+
+    order = relationship("Order", back_populates="payment")
+
+
+class Chat(Base):
+    __tablename__ = "chats"
+
+    id = Column(Integer, primary_key=True, index=True)
+    buyer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    farmer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
+    messages = relationship("Message", back_populates="chat")
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
+    sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    content = Column(Text, nullable=False)
+
+    chat = relationship("Chat", back_populates="messages")

@@ -14,3 +14,15 @@ class FarmerProfileCreate(BaseModel):
                 "farm_size": 150.5,
             }
         }
+
+class FarmerInfo(BaseModel):
+    id: int
+    farm_name: str
+    location: str
+    farm_size: float
+    is_approved: bool
+    user_id: int
+
+    class Config:
+        orm_mode = True
+        from_attributes = True
