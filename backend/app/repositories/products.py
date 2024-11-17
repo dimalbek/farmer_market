@@ -93,5 +93,9 @@ class ProductsRepository:
 
         return query.all()
 
+    def get_all_products(self, db: Session):
+        """Retrieve all products."""
+        return db.query(Product).all()
+
 
 UPLOAD_DIRECTORY = "uploaded_images"
