@@ -18,4 +18,4 @@ venv/
 .mypy_cache/
 .coverage
 .tox/
-backend/uploaded_images/
+backend/uploaded_images
