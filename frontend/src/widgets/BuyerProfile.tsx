@@ -136,7 +136,7 @@ const BuyerProfileComponent: FC = () => {
   if (!profile) {
     if (isCreatingProfile) {
       return (
-        <Card className="w-[500px]">
+        <Card className="w-[calc(100%-2rem)] max-w-[500px]">
           <CardHeader>
             <CardTitle>Create Buyer Profile</CardTitle>
           </CardHeader>
@@ -190,7 +190,7 @@ const BuyerProfileComponent: FC = () => {
       });
 
       return (
-        <Card className="w-[500px]">
+        <Card className="w-[calc(100%-2rem)] max-w-[500px]">
           <CardHeader>
             <CardTitle>Edit Buyer Profile</CardTitle>
           </CardHeader>
@@ -232,7 +232,7 @@ const BuyerProfileComponent: FC = () => {
       );
     } else {
       return (
-        <Card className="w-[500px]">
+        <Card className="w-[calc(100%-2rem)] max-w-[500px]">
           <CardHeader>
             <CardTitle>Buyer Profile</CardTitle>
           </CardHeader>

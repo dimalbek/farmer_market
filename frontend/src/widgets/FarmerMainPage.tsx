@@ -1,4 +1,4 @@
-import { TypographyH4, TypographyP } from "@/components/ui/typography"
+import { TypographyP } from "@/components/ui/typography"
 import { LayoutListIcon, MessageCircle, Plus } from "lucide-react"
 import Link from "next/link"
 

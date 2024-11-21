@@ -1,6 +1,6 @@
 'use client'
 import { Button } from "@/components/ui/button"
-import { TypographyH4, TypographyP } from "@/components/ui/typography"
+import { TypographyH4 } from "@/components/ui/typography"
 import { useUser } from "@/contexts/user/context"
 import Link from "next/link"
 import { useRouter } from "next/navigation"

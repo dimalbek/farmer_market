@@ -12,7 +12,7 @@ const Login = () => {
             <TypographyH1>Login</TypographyH1>
             <LoginForm />
             <TypographySmall>
-                Don't have an account? <a onClick={() => router.push("/signup")} className="text-blue-500 cursor-pointer">Sign up</a>
+                Don&apos;t have an account? <a onClick={() => router.push("/signup")} className="text-blue-500 cursor-pointer">Sign up</a>
             </TypographySmall>
         </main>
     )

@@ -9,4 +9,5 @@ export type Product = {
         image_url: string;
         id: number;
     }[];
+    farmer_id: number;
 }
