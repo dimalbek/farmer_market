@@ -32,25 +32,27 @@ app.include_router(orders_router, prefix="/orders", tags=["orders"])
 app.include_router(chat_router, prefix="/chat", tags=["chat"])
 app.include_router(admin_router)
 app.mount("/static", StaticFiles(directory="uploaded_images"), name="static")
+
+
 @app.get("/healthcheck")
 def health_check():
     return {"status": "ok"}
 
 
-# # ping
-# def send_ping():
-#     while True:
-#         try:
-#             response = requests.get(
-#                 "LINK to deployed back"
-#             )
-#             print(f"Ping status: {response.status_code}")
-#         except Exception as e:
-#             print(f"Failed to ping the server: {e}")
-#         time.sleep(600)  # Sleep 10 minutes
+# ping
+def send_ping():
+    while True:
+        try:
+            response = requests.get(
+                "https://farmer-market-pg1a.onrender.com/healthcheck"
+            )
+            print(f"Ping status: {response.status_code}")
+        except Exception as e:
+            print(f"Failed to ping the server: {e}")
+        time.sleep(600)  # Sleep 10 minutes
 
 
-# # Run ping thread
-# ping_thread = threading.Thread(target=send_ping)
-# ping_thread.daemon = True
-# ping_thread.start()
+# Run ping thread
+ping_thread = threading.Thread(target=send_ping)
+ping_thread.daemon = True
+ping_thread.start()
