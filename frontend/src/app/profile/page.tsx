@@ -103,7 +103,7 @@ const Page: FC = () => {
   return (
     <main className="w-full flex flex-col items-center gap-2">
       {user ? (
-        <Card className="w-[500px]">
+        <Card className="w-[calc(100%-2rem)] max-w-[500px]">
           <CardHeader>
             <CardTitle>Profile</CardTitle>
           </CardHeader>

@@ -1,7 +1,7 @@
-import { Main } from "@/views/Main";
+import { MainPage } from "@/views/Main";
 
 export default function Home() {
   return (
-    <Main />
+    <MainPage />
   );
 }

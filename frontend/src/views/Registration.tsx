@@ -1,14 +1,10 @@
 'use client'
 
 import { TypographyH1, TypographySmall } from "@/components/ui/typography"
-import { User } from "@/lib/types/user"
 import { RegistrationForm } from "@/widgets/regaform"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
 
 const Registration = () => {
-
-    const [user, setUser] = useState<User | null>(null);
     const router = useRouter();
 
     return (
