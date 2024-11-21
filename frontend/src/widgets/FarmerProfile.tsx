@@ -140,7 +140,7 @@ const FarmerProfileComponent: FC = () => {
   if (!profile) {
     if (isCreatingProfile) {
       return (
-        <Card className="w-[500px]">
+        <Card className="w-[calc(100%-2rem)] max-w-[500px]">
           <CardHeader>
             <CardTitle>Create Farmer Profile</CardTitle>
           </CardHeader>
@@ -230,7 +230,7 @@ const FarmerProfileComponent: FC = () => {
       });
 
       return (
-        <Card className="w-[500px]">
+        <Card className="w-[calc(100%-2rem)] max-w-[500px]">
           <CardHeader>
             <CardTitle>Edit Farmer Profile</CardTitle>
           </CardHeader>
@@ -306,7 +306,7 @@ const FarmerProfileComponent: FC = () => {
       );
     } else {
       return (
-        <Card className="w-[500px]">
+        <Card className="w-[calc(100%-2rem)] max-w-[500px]">
           <CardHeader>
             <CardTitle>Farmer Profile</CardTitle>
           </CardHeader>

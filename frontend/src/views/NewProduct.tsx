@@ -24,7 +24,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -49,7 +48,6 @@ const productFormSchema = z.object({
 
 const NewProductPage: FC = () => {
   const { toast } = useToast();
-  const router = useRouter();
 
   const form = useForm<z.infer<typeof productFormSchema>>({
     resolver: zodResolver(productFormSchema),

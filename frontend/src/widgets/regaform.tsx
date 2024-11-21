@@ -1,6 +1,4 @@
 'use client'
-
-import { FC } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -32,9 +30,8 @@ const formSchema = z.object({
   role: z.string(),
 });
 
-interface Props {}
 
-export const RegistrationForm: FC<Props> = ({}) => {
+export const RegistrationForm= () => {
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -76,6 +73,7 @@ export const RegistrationForm: FC<Props> = ({}) => {
         });
       }
     } catch (error) {
+      console.log(error);
       toast({
         title: "Error",
         description: "Network error. Please try again later.",

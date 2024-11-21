@@ -1,10 +1,10 @@
 "use client";
 
-import { FC, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -43,13 +43,10 @@ const productFormSchema = z.object({
 
 type ProductFormValues = z.infer<typeof productFormSchema>;
 
-interface EditProductProps {
-  productId: string;
-}
-
-const EditProductPage: FC<EditProductProps> = ({ productId }) => {
+const EditProductPage = () => {
   const { toast } = useToast();
   const router = useRouter();
+  const params = useParams()
   const [loading, setLoading] = useState(false);
 
   const form = useForm<ProductFormValues>({
@@ -67,7 +64,7 @@ const EditProductPage: FC<EditProductProps> = ({ productId }) => {
     const fetchProduct = async () => {
       try {
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND}/products/${productId}`,
+          `${process.env.NEXT_PUBLIC_BACKEND}/products/${params.productId}`,
             {
                 method: "GET",
                 headers: {
@@ -85,15 +82,15 @@ const EditProductPage: FC<EditProductProps> = ({ productId }) => {
       }
     };
 
-    fetchProduct();
-  }, [productId, form]);
+    if (params.productId) fetchProduct();
+  }, [params, form]);
 
   const onSubmit = async (values: ProductFormValues) => {
     setLoading(true);
     const token = JSON.parse(localStorage.getItem("token") || "{}");
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/products/${productId}`,
+        `${process.env.NEXT_PUBLIC_BACKEND}/products/${params.productId}`,
         {
           method: "PATCH",
           headers: {

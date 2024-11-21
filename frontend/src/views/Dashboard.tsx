@@ -1,7 +1,5 @@
 'use client'
 
-import { useUser } from "@/contexts/user/context"
-import { useRouter } from "next/navigation"
 import {
     Table,
     TableBody,
@@ -42,9 +40,6 @@ interface BuyerDetail {
 }
 
 export const Dashboard = () => {
-
-    const { user } = useUser();
-    const router = useRouter();
 
     const [farmers, setFarmers] = useState<Detail[]>([]);
     const [buyers, setBuyers] = useState<BuyerDetail[]>([]);
@@ -191,16 +186,6 @@ export const Dashboard = () => {
         }
 
 
-    }
-
-    interface FormData {
-        fullname: string;
-        email: string;
-        phone: string;
-        farm_name?: string;
-        location?: string;
-        farm_size?: number;
-        delivery_address?: string;
     }
 
     interface UpdateUserBody {
