@@ -61,6 +61,15 @@ def create_product(
     return product
 
 
+@router.get("/", response_model=List[ProductInfo])
+def get_all_products(db: Session = Depends(get_db)):
+    """
+    Get all products.
+    """
+    products = products_repository.get_all_products(db)
+    return products
+
+
 # Get a product by its ID
 @router.get("/{product_id}", response_model=ProductInfo)
 def get_product(product_id: int, db: Session = Depends(get_db)):
