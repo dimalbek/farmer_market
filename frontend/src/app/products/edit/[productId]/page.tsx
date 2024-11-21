@@ -1,16 +1,8 @@
 import EditProduct from "@/views/EditProduct";
 
-const Page = ({
-    params
-}: 
-{
-    params: {
-        productId: string;
-    }
-}
-) => {
+const Page = () => {
     return (
-        <EditProduct productId={params.productId} />
+        <EditProduct />
     );
 }
 

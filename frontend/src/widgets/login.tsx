@@ -1,7 +1,5 @@
 'use client'
 
-import { FC } from "react";
-
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -28,11 +26,7 @@ const formSchema = z.object({
     password: z.string().min(6)
   })
 
-interface Props { 
-
-}
-
-export const LoginForm: FC<Props> = ({}) => {
+export const LoginForm = () => {
     const {toast} = useToast();
     const {saveUserData} = useUser()
     const navigate = useRouter()
