@@ -56,12 +56,13 @@ def get_profile(token: str = Depends(oauth2_scheme), db: Session = Depends(get_d
 
     return profile
 
-@router.patch("/update/{user_id}")
+@router.patch("/update")
 def update_user(
-        user_id: int,
         user_input: UserUpdate,
         db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme),
 ):
+    user_id = decode_jwt_token(token)
     updated_user = users_repository.update_user(db, user_id, user_input)
     return {
         "message": "User updated successfully",
