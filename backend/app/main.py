@@ -44,7 +44,7 @@ def send_ping():
     while True:
         try:
             response = requests.get(
-                "https://farmer-market-pg1a.onrender.com/healthcheck"
+                "https://8379-178-91-253-103.ngrok-free.app/healthcheck"
             )
             print(f"Ping status: {response.status_code}")
         except Exception as e:
