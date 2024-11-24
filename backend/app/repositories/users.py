@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from ..database.models import User, BuyerProfile, FarmerProfile
@@ -87,6 +87,16 @@ class UsersRepository:
         db_user = db.query(User).filter(User.id == user_id).first()
         if not db_user:
             raise HTTPException(status_code=404, detail="User not found")
+
+        if user_data.email:
+            existing_email = db.query(User).filter(User.email == user_data.email).first()
+            if existing_email and existing_email.id != user_id:  # Ensure the user is not updating to their own email
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already in use")
+
+        if user_data.phone:
+            existing_phone = db.query(User).filter(User.phone == user_data.phone).first()
+            if existing_phone and existing_phone.id != user_id:  # Ensure the user is not updating to their own phone number
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Phone number already in use")
 
         for field, value in user_data.model_dump(exclude_unset=True).items():
             setattr(db_user, field, value)
