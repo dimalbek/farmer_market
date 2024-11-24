@@ -19,6 +19,13 @@ class UsersRepository:
                     status_code=400, detail="User with this email already exists"
                 )
 
+            existing_user_by_phone = db.query(User).filter(User.phone == user_data.phone).first()
+            
+            if existing_user_by_phone:
+                raise HTTPException(
+                    status_code=400, detail="User with this phone number already exists"
+                )
+
             new_user = User(
                 fullname=user_data.fullname,
                 email=user_data.email,
