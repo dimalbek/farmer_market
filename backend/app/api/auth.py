@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Response, HTTPException, Form, status
+from fastapi import APIRouter, Depends, Response, HTTPException, Form, status, BackgroundTasks
 from fastapi.responses import JSONResponse
 from jose import jwt
 from sqlalchemy.orm import Session
@@ -21,15 +21,97 @@ from ..utils.security import (
     decode_jwt_token,
 )
 
+from ..schemas.verification_code import VerificationCodeCreate, VerificationCodeVerify, UserRegistrationData
+from ..utils.email_utils import send_email
+from app.config import (
+    MAIL_USERNAME,
+    MAIL_PASSWORD,
+)
+
+
 router = APIRouter()
 users_repository = UsersRepository()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
 VALID_ROLES = {"Farmer", "Buyer", "Admin"}
 SECRET_KEY = "Messi>Ronaldo"
-EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
-EMAIL_USER = os.getenv("EMAIL_USER", "your_email@example.com")
-EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "your_email_password")
+# EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+# EMAIL_PORT = int(os.getenv("EMAIL_PORT", 587))
+# EMAIL_USER = os.getenv("EMAIL_USER", "your_email@example.com")
+# EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "your_email_password")
+
+# Step 1: Initiate Registration
+@router.post("/users/register", status_code=200)
+def initiate_registration(user_input: UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    if user_input.role not in VALID_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid role: {user_input.role}. Allowed roles are: {', '.join(VALID_ROLES)}"
+        )
+    
+    # Check if user already exists
+    existing_user = users_repository.get_user_by_email_reg(db, user_input.email)
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User with this email already exists")
+    
+    # Create a verification code entry
+    verification_data = VerificationCodeCreate(
+        email=user_input.email,
+        purpose="registration"
+    )
+    verification_code = users_repository.create_verification_code(db, verification_data)
+    
+    # Send verification email
+    subject = "Your Registration Verification Code"
+    body = f"Your verification code is: {verification_code.code}"
+    # send_email(subject, user_input.email, body)
+    background_tasks.add_task(send_email, user_input.email, subject, body)
+
+    # Optionally, store user input temporarily (e.g., in session or another table)
+    # For simplicity, pass user data to confirmation step via frontend
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Verification code sent to email."}
+    )
+
+# Step 2: Confirm Registration
+@router.post("/users/register/confirm", status_code=200)
+def confirm_registration(
+    # email: EmailStr = Form(...),
+    # code: str = Form(...),
+    # fullname: str = Form(...),
+    # password: str = Form(...),
+    # phone: str = Form(...),
+    # role: str = Form(...),
+    user_input: UserRegistrationData,
+    db: Session = Depends(get_db)
+):
+    # Verify the code
+    is_valid = users_repository.verify_code(db, user_input.email, user_input.code, "registration")
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification code")
+    
+    # Proceed to create the user
+    if user_input.role not in VALID_ROLES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid role: {user_input.role}. Allowed roles are: {', '.join(VALID_ROLES)}"
+        )
+    
+    user_data = UserCreate(
+        fullname=user_input.fullname,
+        email=user_input.email,
+        password=user_input.password,
+        phone=user_input.phone,
+        role=user_input.role
+    )
+    user_data.password = hash_password(user_data.password)
+    new_user = users_repository.create_user(db, user_data)
+    
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Successfully registered.", "user_id": new_user.id}
+    )
 
 
 # Registration endpoint
@@ -44,6 +126,58 @@ def post_signup(user_input: UserCreate, db: Session = Depends(get_db)):
         status_code=status.HTTP_200_OK,
         content={"message": "Successfully signed up.", "user_id": new_user.id}
     )
+
+
+@router.post("/users/login/initiate", status_code=200)
+async def initiate_login(login_data: UserLogin, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    user = users_repository.get_user_by_email(db, login_data.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    if not verify_password(login_data.password, user.password_hashed):
+        raise HTTPException(
+            status_code=401,
+            detail="Incorrect password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    # Create a verification code entry
+    verification_data = VerificationCodeCreate(
+        email=login_data.email,
+        purpose="login"
+    )
+    verification_code = users_repository.create_verification_code(db, verification_data)
+    
+    # Send verification email
+    subject = "Your Login Verification Code"
+    body = f"Your login verification code is: {verification_code.code}"
+    # await send_email(login_data.email, subject, body)
+    background_tasks.add_task(send_email, login_data.email, subject, body)
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={"message": "Verification code sent to email."}
+    )
+
+# Step 2: Confirm Login
+@router.post("/users/login/confirm", status_code=200)
+def confirm_login(
+    login_data: VerificationCodeVerify,
+    db: Session = Depends(get_db)
+):
+    # Verify the code
+    is_valid = users_repository.verify_code(db, login_data.email, login_data.code, "login")
+    if not is_valid:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification code")
+    
+    # Retrieve the user
+    user = users_repository.get_user_by_email(db, login_data.email)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Create JWT token
+    access_token = create_jwt_token(user.id)
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 # Login endpoint using email
@@ -148,7 +282,7 @@ def request_password_reset(
 
     # Send email
     try:
-        send_email(
+        send_email_adlet(
             to_email=user.email,
             subject="Password Reset Request",
             body=f"Hello {user.fullname},\n\nClick the link below to reset your password:\n\n{reset_link}\n\nIf you did not request this, ignore this email.",
@@ -184,16 +318,16 @@ def reset_password(data: PasswordResetConfirm, db: Session = Depends(get_db)):
     return {"message": "Password reset successfully."}
 
 
-def send_email(to_email: str, subject: str, body: str):
+def send_email_adlet(to_email: str, subject: str, body: str):
     """
     Function to send an email using smtplib.
     """
     msg = MIMEText(body)
     msg["Subject"] = subject
-    msg["From"] = EMAIL_USER
+    msg["From"] = MAIL_USERNAME
     msg["To"] = to_email
 
-    with smtplib.SMTP(EMAIL_HOST, EMAIL_PORT) as server:
+    with smtplib.SMTP("smtp.fastmail.com", 587) as server:
         server.starttls()
-        server.login(EMAIL_USER, EMAIL_PASSWORD)
-        server.sendmail(EMAIL_USER, to_email, msg.as_string())
+        server.login(MAIL_USERNAME, MAIL_PASSWORD)
+        server.sendmail(MAIL_USERNAME, to_email, msg.as_string())
