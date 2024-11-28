@@ -35,6 +35,7 @@ class User(Base):
     # posts = relationship("Post", back_populates="user")
     comments = relationship("Comment", back_populates="user")
     cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
+    verification_codes = relationship("VerificationCode", back_populates="user")
 
     @property
     def profile(self):
@@ -199,3 +200,16 @@ class CartItem(Base):
 
     user = relationship("User", back_populates="cart_items")
     product = relationship("Product")
+
+
+class VerificationCode(Base):
+    __tablename__ = "verification_codes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Nullable for registration
+    email = Column(String, index=True, nullable=False)  # For registration, user might not exist yet
+    code = Column(String, nullable=False)
+    purpose = Column(String, nullable=False)  # 'registration' or 'login'
+    expires_at = Column(DateTime, nullable=False)
+    
+    user = relationship("User", back_populates="verification_codes")
