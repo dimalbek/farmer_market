@@ -1,8 +1,8 @@
-"""first migration
+"""Initial migration
 
-Revision ID: 0c4ec9e5e354
+Revision ID: 04b4e9f969f1
 Revises: 
-Create Date: 2024-11-21 12:43:20.562116
+Create Date: 2024-11-29 00:06:34.822869
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '0c4ec9e5e354'
+revision: str = '04b4e9f969f1'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -66,6 +66,7 @@ def upgrade() -> None:
     sa.Column('chat_id', sa.Integer(), nullable=False),
     sa.Column('sender_id', sa.Integer(), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
+    sa.Column('timestamp', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['chat_id'], ['chats.id'], ),
     sa.ForeignKeyConstraint(['sender_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -76,7 +77,7 @@ def upgrade() -> None:
     sa.Column('buyer_id', sa.Integer(), nullable=True),
     sa.Column('total_price', sa.Float(), nullable=False),
     sa.Column('status', sa.Enum('Pending', 'Processing', 'Delivered', 'Cancelled', name='order_status'), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['buyer_id'], ['buyer_profiles.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -106,7 +107,7 @@ def upgrade() -> None:
     op.create_table('comments',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('author_id', sa.Integer(), nullable=True),
     sa.Column('product_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['author_id'], ['users.id'], ),
