@@ -87,6 +87,27 @@ def get_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db))
         role=user.role,
     )
 
+@router.get("/users/{user_id}", response_model=UserInfo, status_code=200)
+def get_user_id(user_id: int, db: Session = Depends(get_db)):
+    """
+    Fetch user information by user ID.
+    """
+
+    # Fetch the user from the database
+    user = users_repository.get_user_by_id(db, user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Return user information
+    return UserInfo(
+        id=user.id,
+        fullname=user.fullname,
+        email=user.email,
+        phone=user.phone,
+        role=user.role,
+    )
+
 
 @router.post("/auth/request-password-reset")
 def request_password_reset(

@@ -19,3 +19,4 @@ venv/
 .coverage
 .tox/
 backend/uploaded_images
+.idea/

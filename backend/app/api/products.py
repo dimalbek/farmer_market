@@ -173,3 +173,4 @@ def search_products(
         db, category, price_from, price_until, quantity_from, quantity_until
     )
     return products
+

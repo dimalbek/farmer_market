@@ -24,6 +24,7 @@ class ProductInfo(BaseModel):
     category: str
     price: float
     quantity: int
+    farmer_id: int
     description: Optional[str] = None
     images: List[ProductImageInfo] = []
 

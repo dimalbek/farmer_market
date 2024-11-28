@@ -5,6 +5,8 @@ from ..schemas.farmers import FarmerProfileCreate
 from ..schemas.buyers import BuyerProfileCreate
 from ..database.database import get_db
 from fastapi.security import OAuth2PasswordBearer
+
+from ..schemas.users import UserUpdate
 from ..utils.security import decode_jwt_token, check_user_role
 from .auth import users_repository
 
@@ -54,6 +56,18 @@ def get_profile(token: str = Depends(oauth2_scheme), db: Session = Depends(get_d
 
     return profile
 
+@router.patch("/update")
+def update_user(
+        user_input: UserUpdate,
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme),
+):
+    user_id = decode_jwt_token(token)
+    updated_user = users_repository.update_user(db, user_id, user_input)
+    return {
+        "message": "User updated successfully",
+        "user": updated_user,
+    }
 
 # @router.get("/me", response_model=UserProfileInfo, status_code=200)
 # def get_user_and_profile(
@@ -89,3 +103,19 @@ def get_profile(token: str = Depends(oauth2_scheme), db: Session = Depends(get_d
 #             farm_size=profile.farm_size
 #         ),
 #     )
+
+
+
+@router.get("/farmer/{farmer_id}")
+def get_profile(farmer_id: int, db: Session = Depends(get_db)):
+    farmer = users_repository.get_user_by_id(db, farmer_id)
+
+    # Use the 'profile' property
+    profile = farmer.profile
+
+    # if user.role == "Admin":
+    #     return {"message": "Admin users do not have a specific profile."}
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    return profile
