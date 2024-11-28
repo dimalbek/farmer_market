@@ -20,3 +20,4 @@ venv/
 .tox/
 backend/uploaded_images
 .idea/
+backend/app.log

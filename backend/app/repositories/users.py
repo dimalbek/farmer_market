@@ -132,3 +132,9 @@ class UsersRepository:
             raise HTTPException(status_code=404, detail="User not found")
         db.delete(user)
         db.commit()
+
+    def get_profile_by_id(self, db: Session, farmer_id: int) -> User:
+        user = db.query(FarmerProfile).filter(FarmerProfile.id == farmer_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return user

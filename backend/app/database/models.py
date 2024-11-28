@@ -10,6 +10,7 @@ from sqlalchemy import (
     Enum,
 )
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from .database import Base
 import pytz
 from datetime import datetime
@@ -120,7 +121,7 @@ class Order(Base):
         Enum("Pending", "Processing", "Delivered", "Cancelled", name="order_status"),
         default="Pending",
     )
-    created_at = Column(DateTime, default=datetime.now(pytz.timezone("Asia/Almaty")))
+    created_at = Column(DateTime(timezone=True), default=func.now())
 
     buyer = relationship("BuyerProfile", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
@@ -144,7 +145,7 @@ class Comment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.now(pytz.timezone("Asia/Almaty")))
+    created_at = Column(DateTime(timezone=True), default=func.now())
     author_id = Column(Integer, ForeignKey("users.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
 
@@ -172,7 +173,7 @@ class Chat(Base):
     buyer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     farmer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    messages = relationship("Message", back_populates="chat")
+    messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
 
 
 class Message(Base):
@@ -182,8 +183,10 @@ class Message(Base):
     chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
     sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     content = Column(Text, nullable=False)
+    timestamp = Column(DateTime(timezone=True), default=func.now())
 
     chat = relationship("Chat", back_populates="messages")
+    sender = relationship("User", backref="messages_sent")
 
 
 class CartItem(Base):
