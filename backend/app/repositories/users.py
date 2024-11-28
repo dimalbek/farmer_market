@@ -3,11 +3,13 @@ from typing import List
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from ..database.models import User, BuyerProfile, FarmerProfile
+from ..database.models import User, BuyerProfile, FarmerProfile, VerificationCode
 from ..schemas.users import UserCreate, UserLogin, UserUpdate
 from ..schemas.buyers import BuyerProfileCreate
 from ..schemas.farmers import FarmerProfileCreate
-
+from ..schemas.verification_code import VerificationCodeCreate
+from ..utils.code_generator import generate_verification_code
+from datetime import datetime, timedelta
 
 class UsersRepository:
     def create_user(self, db: Session, user_data: UserCreate) -> User:
@@ -82,6 +84,12 @@ class UsersRepository:
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         return user
+    
+    def get_user_by_email_reg(self, db: Session, email: str) -> User:
+        """Get user by email (for registration purposes)"""
+        user = db.query(User).filter(User.email == email).first()
+        
+        return user
 
     def update_user(self, db: Session, user_id: int, user_data: UserUpdate):
         db_user = db.query(User).filter(User.id == user_id).first()
@@ -132,3 +140,33 @@ class UsersRepository:
             raise HTTPException(status_code=404, detail="User not found")
         db.delete(user)
         db.commit()
+
+    def create_verification_code(self, db: Session, verification_data: VerificationCodeCreate) -> VerificationCode:
+        code = generate_verification_code()
+        expires_at = datetime.utcnow() + timedelta(minutes=10)  # Code valid for 10 minutes
+        verification_code = VerificationCode(
+            email=verification_data.email,
+            code=code,
+            purpose=verification_data.purpose,
+            expires_at=expires_at,
+            user_id=None  # Will be set upon confirmation for login
+        )
+        db.add(verification_code)
+        db.commit()
+        db.refresh(verification_code)
+        return verification_code
+
+    def verify_code(self, db: Session, email: str, code: str, purpose: str) -> bool:
+        verification_entry = db.query(VerificationCode).filter(
+            VerificationCode.email == email,
+            VerificationCode.code == code,
+            VerificationCode.purpose == purpose,
+            VerificationCode.expires_at >= datetime.utcnow()
+        ).first()
+        
+        if verification_entry:
+            # Optionally delete or invalidate the code after verification
+            db.delete(verification_entry)
+            db.commit()
+            return True
+        return False
