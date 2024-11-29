@@ -1,8 +1,8 @@
-"""Initial migration
+"""first migration
 
-Revision ID: 04b4e9f969f1
+Revision ID: d6a4bad9a9d9
 Revises: 
-Create Date: 2024-11-29 00:06:34.822869
+Create Date: 2024-11-29 06:07:43.747664
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '04b4e9f969f1'
+revision: str = 'd6a4bad9a9d9'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -61,6 +61,18 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_farmer_profiles_id'), 'farmer_profiles', ['id'], unique=False)
+    op.create_table('verification_codes',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('email', sa.String(), nullable=False),
+    sa.Column('code', sa.String(), nullable=False),
+    sa.Column('purpose', sa.String(), nullable=False),
+    sa.Column('expires_at', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_verification_codes_email'), 'verification_codes', ['email'], unique=False)
+    op.create_index(op.f('ix_verification_codes_id'), 'verification_codes', ['id'], unique=False)
     op.create_table('messages',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('chat_id', sa.Integer(), nullable=False),
@@ -163,6 +175,9 @@ def downgrade() -> None:
     op.drop_table('orders')
     op.drop_index(op.f('ix_messages_id'), table_name='messages')
     op.drop_table('messages')
+    op.drop_index(op.f('ix_verification_codes_id'), table_name='verification_codes')
+    op.drop_index(op.f('ix_verification_codes_email'), table_name='verification_codes')
+    op.drop_table('verification_codes')
     op.drop_index(op.f('ix_farmer_profiles_id'), table_name='farmer_profiles')
     op.drop_table('farmer_profiles')
     op.drop_index(op.f('ix_chats_id'), table_name='chats')
