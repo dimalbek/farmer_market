@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from ..database.database import get_db
@@ -11,6 +11,7 @@ from ..schemas.buyers import BuyerProfileWithUserInfo, BuyerProfileInfo
 from ..schemas.farmers import FarmerInfo
 from ..schemas.users import FarmerProfileInfo, ProfileInfo, UserInfo, UserUpdate
 from ..utils.security import decode_jwt_token
+from ..utils.email_utils import send_email
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
 users_repository = UsersRepository()
@@ -106,7 +107,7 @@ def get_all_buyers(db: Session = Depends(get_db)):
 #     return {"message": f"Farmer profile for user_id {user_id} approved successfully"}
 
 @router.patch("/{user_id}/approve")
-def approve_farmer(user_id: int, is_approved: bool, db: Session = Depends(get_db)):
+def approve_farmer(user_id: int, is_approved: bool, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """
     Set is_approved to True or False for a farmer profile by user_id.
     
@@ -118,6 +119,26 @@ def approve_farmer(user_id: int, is_approved: bool, db: Session = Depends(get_db
         raise HTTPException(status_code=404, detail="Farmer profile not found")
 
     status_message = "approved" if is_approved else "disapproved"
+    
+    if is_approved:
+        # Retrieve the user's information
+        user = users_repository.get_user_by_id(db, user_id)
+        if user and user.email:
+            subject = "Your Farmer Profile Has Been Approved"
+            body = (
+                f"Hi {user.fullname},\n\n"
+                f"Congratulations! Your farmer profile has been approved. "
+                f"You can now access all the features available to approved farmers.\n\n"
+                f"Thank you for being a part of our platform!\n\n"
+                f"Best regards,\n"
+                f"The Farmer Market Team"
+            )
+            # Schedule the email to be sent in the background
+            background_tasks.add_task(send_email, user.email, subject, body)
+        else:
+            # Log or handle the case where user information is missing
+            raise HTTPException(status_code=400, detail="User email not found.")
+    
     return {"message": f"Farmer profile for user_id {user_id} has been {status_message}."}
 
 # Endpoint to get all users
