@@ -134,9 +134,7 @@ class FarmerForm extends StatelessWidget {
             ),
             validator: (value) => value!.isEmpty ? "* Required" : null,
           ),
-          const SizedBox(
-            height: 20.0,
-          ),
+          const SizedBox(height: 20.0),
           TextFormField(
             controller: location,
             decoration: InputDecoration(
@@ -148,9 +146,7 @@ class FarmerForm extends StatelessWidget {
             ),
             validator: (value) => value!.isEmpty ? "* Required" : null,
           ),
-          const SizedBox(
-            height: 20.0,
-          ),
+          const SizedBox(height: 20.0),
           TextFormField(
             controller: farmSize,
             keyboardType: TextInputType.number,
@@ -163,9 +159,7 @@ class FarmerForm extends StatelessWidget {
             ),
             validator: (value) => value!.isEmpty ? "* Required" : null,
           ),
-          const SizedBox(
-            height: 30.0,
-          ),
+          const SizedBox(height: 30.0),
           widget.farmerProfile == null
               ? Row(
                   children: [
@@ -182,13 +176,14 @@ class FarmerForm extends StatelessWidget {
                               },
                               context.read<AuthProvider>().user!.token,
                             );
-                            Navigator.push(
+                            Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => const RootScreen(
                                   selectedIndex: 0,
                                 ),
                               ),
+                              (route) => false,
                             );
                           }
                         },
@@ -197,14 +192,7 @@ class FarmerForm extends StatelessWidget {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RootScreen(
-                              selectedIndex: 0,
-                            ),
-                          ),
-                        );
+                        Navigator.of(context).pop();
                       },
                       child: const Text("Cancel"),
                     ),
@@ -268,13 +256,14 @@ class BuyerForm extends StatelessWidget {
                               },
                               context.read<AuthProvider>().user!.token,
                             );
-                            Navigator.push(
+                            Navigator.pushAndRemoveUntil(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => const RootScreen(
                                   selectedIndex: 0,
                                 ),
                               ),
+                              (route) => false,
                             );
                           }
                         },
@@ -283,14 +272,7 @@ class BuyerForm extends StatelessWidget {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const RootScreen(
-                              selectedIndex: 0,
-                            ),
-                          ),
-                        );
+                        Navigator.of(context).pop();
                       },
                       child: const Text("Cancel"),
                     ),

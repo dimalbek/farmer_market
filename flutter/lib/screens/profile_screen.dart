@@ -2,7 +2,7 @@ import 'package:farmer_app_2/models/profile.dart';
 import 'package:farmer_app_2/models/user.dart';
 import 'package:farmer_app_2/providers/auth_provider.dart';
 import 'package:farmer_app_2/providers/profile_provider.dart';
-import 'package:farmer_app_2/screens/create_or_edit_farmer_form.dart';
+import 'package:farmer_app_2/screens/create_or_edit_role_form.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

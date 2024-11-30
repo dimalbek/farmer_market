@@ -2,7 +2,6 @@ import 'package:farmer_app_2/constants/routes.dart';
 import 'package:farmer_app_2/models/user.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import '../providers/auth_provider.dart';
 import '../providers/product_provider.dart';
 import 'add_update_product_screen.dart';
