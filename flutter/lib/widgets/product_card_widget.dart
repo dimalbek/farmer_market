@@ -1,11 +1,8 @@
-import 'package:expandable/expandable.dart';
+import 'package:farmer_app_2/constants/routes.dart';
+import 'package:farmer_app_2/screens/product_screen.dart';
+
 import '../models/product.dart';
-import '../providers/auth_provider.dart';
-import '../providers/product_provider.dart';
-import '../screens/add_update_product_screen.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class ProductCardWidget extends StatelessWidget {
   final Product product;
@@ -17,161 +14,80 @@ class ProductCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId = context.read<AuthProvider>().user!.id;
-    print(product.images[0].toString());
-    // return Card(
-    //   child: Row(
-    //     children: [
-    //       Container(
-    //         child: Text(product.images[0].toString()),
-    //       )
-    //     ],
-    //   ),
-    // );
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: ExpandablePanel(
-          header: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                product.name,
-                style: const TextStyle(
-                    fontSize: 18.0, fontWeight: FontWeight.w400),
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => ProductScreen(product: product),
+        ));
+      },
+      child: Card(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10.0),
+                  child: Image(
+                    image: getAssetImage(),
+                    height: 150,
+                    width: 150,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
-              const SizedBox(
-                height: 5.0,
-              ),
-            ],
-          ),
-          collapsed: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                product.description,
-                textAlign: TextAlign.left,
-                style: const TextStyle(height: 1.5),
-                softWrap: true,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(
-                height: 10.0,
-              ),
-              userId == product.farmerId
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          constraints: const BoxConstraints(
-                            maxHeight: 20.0,
-                            maxWidth: 20.0,
-                          ),
-                          padding: EdgeInsets.zero,
-                          icon: Icon(
-                            Icons.delete,
-                            color: Colors.red[400],
-                          ),
-                          onPressed: () async {
-                            await context
-                                .read<ProductProvider>()
-                                .deletePost(product.id);
-                          },
-                        ),
-                        const SizedBox(
-                          width: 10.0,
-                        ),
-                        IconButton(
-                          constraints: const BoxConstraints(
-                            maxHeight: 20.0,
-                            maxWidth: 20.0,
-                          ),
-                          padding: EdgeInsets.zero,
-                          icon: Icon(
-                            Icons.edit,
-                            color: Colors.blue[400],
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    AddUpdateProductScreen(product: product),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          width: 10.0,
-                        ),
-                      ],
-                    )
-                  : Container(),
-            ],
-          ),
-          expanded: Column(
-            children: [
-              Text(
-                product.description,
-                style: const TextStyle(height: 1.5),
-                textAlign: TextAlign.left,
-                softWrap: true,
-              ),
-              const SizedBox(
-                height: 10.0,
-              ),
-              userId == product.farmerUserId
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        IconButton(
-                          constraints: const BoxConstraints(
-                            maxHeight: 20.0,
-                            maxWidth: 20.0,
-                          ),
-                          padding: EdgeInsets.zero,
-                          icon: Icon(
-                            Icons.delete,
-                            color: Colors.red[400],
-                          ),
-                          onPressed: () {},
-                        ),
-                        const SizedBox(
-                          width: 10.0,
-                        ),
-                        IconButton(
-                          constraints: const BoxConstraints(
-                            maxHeight: 20.0,
-                            maxWidth: 20.0,
-                          ),
-                          padding: EdgeInsets.zero,
-                          icon: Icon(
-                            Icons.edit,
-                            color: Colors.blue[400],
-                          ),
-                          onPressed: () {
-                            if (kDebugMode) {
-                              print('ayaw');
-                            }
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    AddUpdateProductScreen(product: product),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(
-                          width: 10.0,
-                        ),
-                      ],
-                    )
-                  : Container(),
-            ],
-          ),
+            ),
+            Expanded(
+              child: ProductInformation(product: product),
+            )
+          ],
         ),
+      ),
+    );
+  }
+
+  AssetImage getAssetImage() {
+    // try {
+    //   return AssetImage(
+    //     '$images_path${(product.images[0]['image_url'].toString()).substring(8)}',
+    //   );
+    // } catch (_) {
+    return const AssetImage('assets/alternative.jpg');
+    // }
+  }
+}
+
+class ProductInformation extends StatelessWidget {
+  const ProductInformation({
+    super.key,
+    required this.product,
+  });
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 150,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Text(
+            product.category,
+            style: const TextStyle(color: Colors.black54),
+          ),
+          Text(
+            product.name,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
+          ),
+          Text(product.description),
+          Text(
+            '${product.price} ₸',
+            style: const TextStyle(fontSize: 18.0),
+          ),
+        ],
       ),
     );
   }

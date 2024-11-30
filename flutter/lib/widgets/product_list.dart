@@ -7,19 +7,8 @@ import 'package:provider/provider.dart';
 class ProductList extends StatelessWidget {
   const ProductList({super.key});
 
-  Future<void> printAllPosts() async {
-    try {
-      print(await ProductProvider().getAllProducts());
-    } catch (e) {
-      print(
-          "Error occured during getting all products\nError: ${e.toString()}");
-    }
-    ;
-  }
-
   @override
   Widget build(BuildContext context) {
-    // printAllPosts();
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: FutureBuilder<List<Product>>(

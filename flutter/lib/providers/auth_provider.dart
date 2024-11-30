@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:farmer_app_2/constants/fields.dart';
 import 'package:farmer_app_2/constants/routes.dart';
+import 'package:farmer_app_2/widgets/toast_message.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/user.dart';
 import '../services/auth_services.dart';
@@ -37,13 +38,14 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  void login(
+  Future<String> login(
     String username,
     String password,
-    BuildContext context,
+    BuildContext? context,
   ) async {
     triggerLoad();
     Response? userdata = await AuthService().login(username, password);
+    String token = '';
     print(userdata);
     if (userdata == null || userdata.statusCode != 200) {
       String errMsg = "";
@@ -64,13 +66,14 @@ class AuthProvider with ChangeNotifier {
     } else {
       // User exists
       // Get his jwt token
-      final token = userdata.data['access_token'];
+      token = userdata.data['access_token'];
+
       _futureUser = AuthProvider().getUserInfo(token);
       _user = await _futureUser;
       notifyListeners();
 
       // Navigate user to page
-      if (context.mounted) {
+      if (context != null && context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           rootRoute,
           (route) => false,
@@ -78,6 +81,7 @@ class AuthProvider with ChangeNotifier {
       }
     }
     triggerLoad();
+    return token;
   }
 
   Future<bool> register(Map<String, dynamic> loginData) async {
@@ -86,42 +90,22 @@ class AuthProvider with ChangeNotifier {
     if (userdata == null || userdata.statusCode != 200) {
       String errMsg = "";
       try {
-        errMsg = userdata!.data["detail"];
+        errMsg = userdata!.data["detail"][0]["msg"];
       } catch (_) {
         errMsg = "Error: ${userdata!.data.toString()}";
       }
-      Fluttertoast.showToast(
-        msg: errMsg,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
+      failToast(errMsg);
     }
     print(userdata);
     if (userdata.data['message'] != "Successfully signed up.") {
-      Fluttertoast.showToast(
-          msg: userdata.data['detail'],
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0);
+      failToast(userdata.data['detail']);
       triggerLoad();
+      _isLoading = false;
       return false;
     } else {
-      Fluttertoast.showToast(
-          msg: userdata.data['message'],
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 16.0);
+      // successToast(userdata.data['message']);
       triggerLoad();
+      _isLoading = false;
       return true;
     }
   }
