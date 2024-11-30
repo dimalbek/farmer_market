@@ -1,3 +1,3 @@
 class CUrls {
-  static String baseApiUrl = "http://192.168.0.196:8000";
+  static String baseApiUrl = "https://32f2-87-255-216-84.ngrok-free.app";
 }

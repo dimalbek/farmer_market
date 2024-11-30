@@ -6,7 +6,7 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      child: Text("In Process"),
+      child: Text("Chat..."),
     );
   }
 }

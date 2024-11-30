@@ -109,6 +109,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         AbsorbPointer(
                           absorbing: isLoading,
                           child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Theme.of(context).colorScheme.primary,
+                              foregroundColor: Theme.of(context)
+                                  .colorScheme
+                                  .primaryContainer,
+                            ),
                             onPressed: () async {
                               if (_formkey.currentState!.validate()) {
                                 context.read<AuthProvider>().login(
