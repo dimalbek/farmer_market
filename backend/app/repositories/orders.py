@@ -46,6 +46,11 @@ class OrdersRepository:
             raise HTTPException(status_code=404, detail="Order not found")
         return order
 
+    def get_orders_by_user_id(self, db: Session, user_id: int) -> List[Order]:
+        """Retrieve all orders for a specific user."""
+        return db.query(Order).filter(Order.buyer_id == user_id).all()
+
+
     def update_order(self, db: Session, order_id: int, order_data: OrderUpdate) -> Order:
         """Update the status of an order."""
         order = db.query(Order).filter(Order.id == order_id).first()

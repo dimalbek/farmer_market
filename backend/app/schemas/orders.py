@@ -7,7 +7,6 @@ class OrderItemCreate(BaseModel):
     product_id: int
     quantity: int
 
-
 class OrderCreate(BaseModel):
     total_price: float
     status: str

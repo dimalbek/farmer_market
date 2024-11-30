@@ -1,8 +1,8 @@
 """first migration
 
-Revision ID: 0c4ec9e5e354
+Revision ID: d6a4bad9a9d9
 Revises: 
-Create Date: 2024-11-21 12:43:20.562116
+Create Date: 2024-11-29 06:07:43.747664
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '0c4ec9e5e354'
+revision: str = 'd6a4bad9a9d9'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -61,11 +61,24 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_farmer_profiles_id'), 'farmer_profiles', ['id'], unique=False)
+    op.create_table('verification_codes',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('email', sa.String(), nullable=False),
+    sa.Column('code', sa.String(), nullable=False),
+    sa.Column('purpose', sa.String(), nullable=False),
+    sa.Column('expires_at', sa.DateTime(), nullable=False),
+    sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
+    op.create_index(op.f('ix_verification_codes_email'), 'verification_codes', ['email'], unique=False)
+    op.create_index(op.f('ix_verification_codes_id'), 'verification_codes', ['id'], unique=False)
     op.create_table('messages',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('chat_id', sa.Integer(), nullable=False),
     sa.Column('sender_id', sa.Integer(), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
+    sa.Column('timestamp', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['chat_id'], ['chats.id'], ),
     sa.ForeignKeyConstraint(['sender_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
@@ -76,7 +89,7 @@ def upgrade() -> None:
     sa.Column('buyer_id', sa.Integer(), nullable=True),
     sa.Column('total_price', sa.Float(), nullable=False),
     sa.Column('status', sa.Enum('Pending', 'Processing', 'Delivered', 'Cancelled', name='order_status'), nullable=True),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
     sa.ForeignKeyConstraint(['buyer_id'], ['buyer_profiles.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -106,7 +119,7 @@ def upgrade() -> None:
     op.create_table('comments',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('content', sa.Text(), nullable=False),
-    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), nullable=True),
     sa.Column('author_id', sa.Integer(), nullable=True),
     sa.Column('product_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['author_id'], ['users.id'], ),
@@ -162,6 +175,9 @@ def downgrade() -> None:
     op.drop_table('orders')
     op.drop_index(op.f('ix_messages_id'), table_name='messages')
     op.drop_table('messages')
+    op.drop_index(op.f('ix_verification_codes_id'), table_name='verification_codes')
+    op.drop_index(op.f('ix_verification_codes_email'), table_name='verification_codes')
+    op.drop_table('verification_codes')
     op.drop_index(op.f('ix_farmer_profiles_id'), table_name='farmer_profiles')
     op.drop_table('farmer_profiles')
     op.drop_index(op.f('ix_chats_id'), table_name='chats')
