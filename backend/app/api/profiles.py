@@ -51,8 +51,8 @@ def get_profile(token: str = Depends(oauth2_scheme), db: Session = Depends(get_d
 
     # if user.role == "Admin":
     #     return {"message": "Admin users do not have a specific profile."}
-    # if not profile:
-    #     raise HTTPException(status_code=404, detail="Profile not found")
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
 
     return profile
 
@@ -103,3 +103,16 @@ def update_user(
 #             farm_size=profile.farm_size
 #         ),
 #     )
+
+
+
+@router.get("/farmer/{farmer_id}")
+def get_profile(farmer_id: int, db: Session = Depends(get_db)):
+    farmer = users_repository.get_profile_by_id(db, farmer_id)
+
+    # if user.role == "Admin":
+    #     return {"message": "Admin users do not have a specific profile."}
+    if not farmer:
+        raise HTTPException(status_code=404, detail="Profile not found")
+
+    return farmer
