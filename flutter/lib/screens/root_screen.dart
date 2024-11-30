@@ -1,3 +1,4 @@
+import 'package:farmer_app_2/screens/cart_screen.dart';
 import 'package:farmer_app_2/screens/chat_screen.dart';
 import 'package:farmer_app_2/screens/home_screen.dart';
 import 'package:farmer_app_2/screens/profile_screen.dart';
@@ -16,6 +17,7 @@ class _RootScreenState extends State<RootScreen> {
   final List<Widget> _screens = [
     const ProfileScreen(),
     const HomeScreen(),
+    const CartScreen(),
     const ChatScreen(),
   ];
 
@@ -34,6 +36,7 @@ class _RootScreenState extends State<RootScreen> {
       ),
       body: _screens[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -50,6 +53,11 @@ class _RootScreenState extends State<RootScreen> {
             activeIcon: Icon(Icons.home),
             icon: Icon(Icons.home_outlined),
             label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            activeIcon: Icon(Icons.shopping_cart),
+            icon: Icon(Icons.shopping_cart_outlined),
+            label: 'Cart',
           ),
           BottomNavigationBarItem(
             activeIcon: Icon(Icons.chat_bubble),

@@ -1,4 +1,5 @@
 import 'package:farmer_app_2/constants/routes.dart';
+import 'package:farmer_app_2/providers/cart_provider.dart';
 import 'package:farmer_app_2/providers/profile_provider.dart';
 import 'package:farmer_app_2/screens/login_screen.dart';
 import 'package:farmer_app_2/screens/product_screen.dart';
@@ -30,6 +31,9 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => ProfileProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CartProvider(),
         ),
       ],
       child: MaterialApp(

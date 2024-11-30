@@ -1,6 +1,4 @@
-import 'package:dio/dio.dart';
 import 'package:farmer_app_2/constants/fields.dart';
-import 'package:image_picker/image_picker.dart';
 
 class Product {
   final String id;
