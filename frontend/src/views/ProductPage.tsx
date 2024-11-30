@@ -9,6 +9,8 @@ import { FarmerProfile } from "@/lib/types/profile";
 import { ImageCarousel } from "@/widgets/ImageCarousel";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+ 
+
 
 
 interface Farmer  {
@@ -145,6 +147,38 @@ export const ProductPage = () => {
             console.error("Error creating chat:", error);
         }
     }
+
+    const handleAddToCart = async () => {
+        try {
+            const token = JSON.parse(localStorage.getItem("token") || "{}");
+    
+            const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND}/cart/`);
+            url.searchParams.append("product_id", String(product?.id || ""));
+            url.searchParams.append("quantity", "1");
+        
+            const response = await fetch(url.toString(), {
+                method: "POST",
+                headers: {
+                    "ngrok-skip-browser-warning": "true",
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token.access_token}`,
+                },
+            });
+    
+            if (response.ok) {
+                const responseData = await response.json();
+                console.log("Success:", responseData);  
+            } else if (response.status === 422) {
+                const errorData = await response.json();
+                console.error("Validation Error:", errorData);  
+                console.error("Failed to add to cart:", response.status, response.statusText);
+            }
+        } catch (error) {
+            console.error("An error occurred while adding to cart:", error);
+        }
+    };
+    
+    
     
     
     if (loading) {
@@ -186,7 +220,7 @@ export const ProductPage = () => {
             </div>
             <div className="fixed bottom-0 left-0 w-full h-max flex items-center gap-2 p-2 !pb-4 bg-[white] shadow-md border-t">
                 <Button variant="outline" className="w-full mt-4" onClick={handleCreateChat}>Chat</Button>
-                <Button className="w-full mt-4">Add to Cart</Button>
+                <Button className="w-full mt-4" onClick={handleAddToCart}>Add to Cart</Button>
             </div>
         </div>)
 }
