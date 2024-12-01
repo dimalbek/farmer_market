@@ -18,17 +18,33 @@ class OrderUpdate(BaseModel):
     status: Optional[str] = None
 
 
+class ProductInfo(BaseModel):
+    id: int
+    name: str
+    description: str
+    category: str
+    price: float
+
+    class Config:
+        orm_mode = True
+
+class OrderedProductDetail(BaseModel):
+    product: ProductInfo
+    quantity: int
+
+    class Config:
+        orm_mode = True
+
 class OrderInfo(BaseModel):
     id: int
     total_price: float
     status: str
     created_at: datetime
     buyer_id: int
+    items: List[OrderedProductDetail]
 
     class Config:
         orm_mode = True
-        from_attributes = True
-
 
 class BuyerInfo(BaseModel):
     id: int
@@ -39,22 +55,29 @@ class BuyerInfo(BaseModel):
     class Config:
         orm_mode = True
 
-class OrderedProductInfo(BaseModel):
-    product_id: int
-    name: str
-    quantity: int
-    price: float
-
-    class Config:
-        orm_mode = True
-
 class FarmerOrderInfo(BaseModel):
     order_id: int
     total_price: float
     status: str
     created_at: datetime
     buyer: BuyerInfo
-    items: List[OrderedProductInfo]
+    items: List[OrderedProductDetail]
+
+    class Config:
+        orm_mode = True
+
+
+class PurchasedProductInfo(BaseModel):
+    product: ProductInfo
+    quantity: int
+    purchase_time: datetime
+
+    class Config:
+        orm_mode = True
+
+
+class FarmerPurchasedProducts(BaseModel):
+    purchases: List[PurchasedProductInfo]
 
     class Config:
         orm_mode = True
