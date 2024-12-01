@@ -1,5 +1,21 @@
 from pydantic import BaseModel
+from enum import Enum
 
+class ApprovalStatusEnum(str, Enum):
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    PENDING = "pending"
+
+class FarmerProfileRead(BaseModel):
+    id: int
+    farm_name: str
+    location: str
+    farm_size: float
+    user_id: int
+    is_approved: ApprovalStatusEnum
+
+    class Config:
+        orm_mode = True  # Enables compatibility with ORM objects
 
 class FarmerProfileCreate(BaseModel):
     farm_name: str

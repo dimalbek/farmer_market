@@ -4,7 +4,7 @@ export type FarmerProfile = {
     user_id: string;
     location: string;
     farm_size: number;
-    is_approved: boolean;
+    is_approved: "approved" | "pending" | "rejected";
 }
 
 export type BuyerProfile = {

@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from ..database.database import get_db
@@ -166,7 +167,8 @@ def approve_farmer(
         Congratulations! Your farmer profile has been approved. You can now access all the features available to approved farmers.
 
         Thank you for being a part of our platform!
-
+        Comment:
+        {reason}
         Best regards,
         The Farmer Market Team
         """

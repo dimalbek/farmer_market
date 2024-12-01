@@ -14,6 +14,11 @@ const Login = () => {
             <TypographySmall>
                 Don&apos;t have an account? <a onClick={() => router.push("/signup")} className="text-blue-500 cursor-pointer">Sign up</a>
             </TypographySmall>
+            <TypographySmall>
+                <a onClick={() => router.push("/forgot")} className="text-blue-500 cursor-pointer">
+                    Forgot password?
+                </a>
+            </TypographySmall>
         </main>
     )
 }

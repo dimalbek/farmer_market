@@ -29,32 +29,66 @@ import { useState } from "react"
 
 
 const formSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(6)
+    email: z.string().email()
   })
 
-export const LoginForm = () => {
+export const ResetForm = () => {
     const {toast} = useToast();
     const {saveUserData} = useUser()
     const [email, setEmail] = useState("")
     const [isFilling, setIsFilling] = useState(true)
+    const [password, setPassword] = useState("")
+    const [code, setCode] = useState("")
     const navigate = useRouter()
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            email: "",
-            password: ""
+            email: ""
         },
       })
 
       const handleCheckCode = async (thecode: string) => {
         
         if (thecode.length === 6) {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/auth/users/login/confirm`, {
+            setCode(thecode)
+        }
+      }
+     
+      async function onSubmit(values: z.infer<typeof formSchema>) {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/auth/users/password-reset/initiate`, {
+            method: "POST",
+            body: JSON.stringify(values),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        const body = await response.json()
+        if (response.ok) {
+            toast({
+              title: "Success",
+              description: "We sent you an email with a code to confirm your login",
+              variant: "default"
+            });
+              setEmail(values.email);
+              setIsFilling(false);
+          } else {
+            toast({
+              title: "Error",
+              description: body.detail,
+              variant: "destructive",
+            });
+          }
+        
+
+      }
+
+      async function handleResetPassword() {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/auth/users/password-reset/confirm`, {
             method: "POST",
             body: JSON.stringify({
-              email: email,
-              code: thecode
+                email: email,
+              code: code,
+              new_password: password
             }),
             headers: {
                 "Content-Type": "application/json"
@@ -91,35 +125,6 @@ export const LoginForm = () => {
             });
           }
         
-        }
-      }
-     
-      async function onSubmit(values: z.infer<typeof formSchema>) {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/auth/users/login/initiate`, {
-            method: "POST",
-            body: JSON.stringify(values),
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-        const body = await response.json()
-        if (response.ok) {
-            toast({
-              title: "Success",
-              description: "We sent you an email with a code to confirm your login",
-              variant: "default"
-            });
-              setEmail(values.email);
-              setIsFilling(false);
-          } else {
-            toast({
-              title: "Error",
-              description: body.detail,
-              variant: "destructive",
-            });
-          }
-        
-
       }
     
     return (<>
@@ -140,37 +145,31 @@ export const LoginForm = () => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <Button className="w-full" type="submit">Submit</Button>
           </form>
         </Form>
       ) :(
-        <InputOTP onChange={handleCheckCode} maxLength={6}>
-          <InputOTPGroup>
-            <InputOTPSlot index={0} />
-            <InputOTPSlot index={1} />
-            <InputOTPSlot index={2} />
-          </InputOTPGroup>
-          <InputOTPSeparator />
-          <InputOTPGroup>
-            <InputOTPSlot index={3} />
-            <InputOTPSlot index={4} />
-            <InputOTPSlot index={5} />
-          </InputOTPGroup>
-        </InputOTP>
-
+        <div className="w-full flex flex-col items-center gap-2">
+            <InputOTP onChange={handleCheckCode} maxLength={6}>
+            <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+            </InputOTPGroup>
+            </InputOTP>
+            {
+                true && <div className="w-full flex flex-col items-center gap-2">
+                    <Input placeholder="New password" className="mx-4" onChange={(e) => setPassword(e.target.value)} type="text" value={password} />
+                    <Button className="w-full" onClick={handleResetPassword}>Reset password</Button>
+                </div>
+            }
+        </div>
       )
     }
     </>)
