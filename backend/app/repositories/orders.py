@@ -4,8 +4,8 @@ from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from ..database.models import Order, OrderItem, Product
-from ..schemas.orders import OrderCreate, OrderUpdate
+from ..database.models import Order, OrderItem, Product, BuyerProfile, User
+from ..schemas.orders import OrderCreate, OrderUpdate, FarmerOrderInfo, OrderedProductInfo, BuyerInfo
 import logging
 logging.basicConfig(
     level=logging.INFO,  # Записывать все логи уровня INFO и выше
@@ -118,3 +118,56 @@ class OrdersRepository:
         except IntegrityError:
             db.rollback()
             raise HTTPException(status_code=500, detail="Error deleting order")
+
+    def get_orders_by_farmer_id(self, db: Session, farmer_id: int) -> List[FarmerOrderInfo]:
+        """Retrieve all orders and buyers for a specific farmer."""
+        logger.info(f"Fetching orders for farmer_id: {farmer_id}")
+        try:
+            # Join Order, OrderItem, Product, BuyerProfile, User
+            orders = (
+                db.query(Order)
+                .join(OrderItem, Order.id == OrderItem.order_id)
+                .join(Product, OrderItem.product_id == Product.id)
+                .join(BuyerProfile, Order.buyer_id == BuyerProfile.id)
+                .join(User, BuyerProfile.user_id == User.id)
+                .filter(Product.farmer_id == farmer_id)
+                .all()
+            )
+
+            farmer_orders = []
+            for order in orders:
+                # Filter OrderItems that belong to the farmer
+                relevant_items = [
+                    OrderedProductInfo(
+                        product_id=item.product.id,
+                        name=item.product.name,
+                        quantity=item.quantity,
+                        price=item.product.price
+                    )
+                    for item in order.items
+                    if item.product.farmer_id == farmer_id
+                ]
+
+                if relevant_items:
+                    farmer_orders.append(
+                        FarmerOrderInfo(
+                            order_id=order.id,
+                            total_price=order.total_price,
+                            status=order.status,
+                            created_at=order.created_at,
+                            buyer=BuyerInfo(
+                                id=order.buyer.user.id,
+                                fullname=order.buyer.user.fullname,
+                                email=order.buyer.user.email,
+                                phone=order.buyer.user.phone
+                            ),
+                            items=relevant_items
+                        )
+                    )
+
+            logger.info(f"Retrieved {len(farmer_orders)} orders for farmer_id: {farmer_id}")
+            return farmer_orders
+
+        except Exception as e:
+            logger.exception("Error fetching orders by farmer_id")
+            raise HTTPException(status_code=500, detail="Internal server error while fetching orders.")

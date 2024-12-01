@@ -28,3 +28,33 @@ class OrderInfo(BaseModel):
     class Config:
         orm_mode = True
         from_attributes = True
+
+
+class BuyerInfo(BaseModel):
+    id: int
+    fullname: str
+    email: str
+    phone: str
+
+    class Config:
+        orm_mode = True
+
+class OrderedProductInfo(BaseModel):
+    product_id: int
+    name: str
+    quantity: int
+    price: float
+
+    class Config:
+        orm_mode = True
+
+class FarmerOrderInfo(BaseModel):
+    order_id: int
+    total_price: float
+    status: str
+    created_at: datetime
+    buyer: BuyerInfo
+    items: List[OrderedProductInfo]
+
+    class Config:
+        orm_mode = True
