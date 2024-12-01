@@ -55,7 +55,7 @@ class ProfileInfo(BaseModel):
     farm_name: str
     location: str
     farm_size: float
-    is_approved: bool
+    is_approved: str
     user_id: int
 
 class FarmerProfileInfo(BaseModel):
