@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -33,6 +34,7 @@ const formSchema = z.object({
 
 export const RegistrationForm= () => {
   const { toast } = useToast();
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -65,12 +67,14 @@ export const RegistrationForm= () => {
           description: body.message || "User registered successfully!",
           variant: "default"
         });
+        router.push('/login') 
       } else {
         toast({
           title: "Error",
           description: body.message || "Something went wrong. Please try again.",
           variant: "destructive",
         });
+        
       }
     } catch (error) {
       console.log(error);
