@@ -1,21 +1,24 @@
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+
 from ..database.database import get_db
 from ..repositories.buyers import BuyersRepository
 from ..repositories.farmers import FarmersRepository
 from ..repositories.users import UsersRepository
-from ..schemas.buyers import BuyerProfileWithUserInfo, BuyerProfileInfo
-from ..schemas.farmers import FarmerInfo
-from ..schemas.users import FarmerProfileInfo, ProfileInfo, UserInfo, UserUpdate
+from ..schemas.buyers import BuyerProfileInfo, BuyerProfileWithUserInfo
+from ..schemas.users import (FarmerProfileInfo, ProfileInfo, UserInfo,
+                             UserUpdate)
 from ..utils.security import decode_jwt_token
+from ..utils.email_utils import send_email
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
+oauth2_scheme_2factor = OAuth2PasswordBearer(tokenUrl="/auth/users/login/confirm")
 users_repository = UsersRepository()
 def admin_required(
-        token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+        token: str = Depends(oauth2_scheme_2factor), db: Session = Depends(get_db)
 ):
     user_id = decode_jwt_token(token)
     user = users_repository.get_user_by_id(db, user_id)
@@ -106,7 +109,13 @@ def get_all_buyers(db: Session = Depends(get_db)):
 #     return {"message": f"Farmer profile for user_id {user_id} approved successfully"}
 
 @router.patch("/{user_id}/approve")
-def approve_farmer(user_id: int, is_approved: bool, db: Session = Depends(get_db)):
+def approve_farmer(
+    user_id: int,
+    is_approved: bool,
+    background_tasks: BackgroundTasks,
+    reason: Optional[str] = Query(None, description="Reason for disapproval. Required if disapproving."),
+    db: Session = Depends(get_db)
+):
     """
     Set is_approved to True or False for a farmer profile by user_id.
     
@@ -118,6 +127,51 @@ def approve_farmer(user_id: int, is_approved: bool, db: Session = Depends(get_db
         raise HTTPException(status_code=404, detail="Farmer profile not found")
 
     status_message = "approved" if is_approved else "disapproved"
+    
+    # If disapproving, ensure a reason is provided
+    if not is_approved:
+        if not reason:
+            raise HTTPException(
+                status_code=400,
+                detail="Rejection reason must be provided when disapproving a farmer."
+            )
+
+    # Retrieve the user's information
+    user = users_repository.get_user_by_id(db, user_id)
+    if not user or not user.email:
+        raise HTTPException(status_code=400, detail="User email not found.")
+
+    # Prepare email details
+    if is_approved:
+        subject = "Your Farmer Profile Has Been Approved"
+        body = f"""\
+        Hi {user.fullname},
+
+        Congratulations! Your farmer profile has been approved. You can now access all the features available to approved farmers.
+
+        Thank you for being a part of our platform!
+
+        Best regards,
+        The Farmer Market Team
+        """
+    else:
+        subject = "Your Farmer Profile Has Been Disapproved"
+        body = f"""\
+        Hi {user.fullname},
+
+        We regret to inform you that your farmer profile has been disapproved for the following reason:
+
+        {reason}
+
+        If you believe this is a mistake or would like to appeal this decision, please contact our support team.
+
+        Best regards,
+        The Farmer Market Team
+        """
+
+    # Schedule the email to be sent in the background
+    background_tasks.add_task(send_email, user.email, subject, body)
+    
     return {"message": f"Farmer profile for user_id {user_id} has been {status_message}."}
 
 # Endpoint to get all users

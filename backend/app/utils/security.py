@@ -1,13 +1,14 @@
-from passlib.context import CryptContext
-from jose import jwt, JWTError
 from datetime import datetime, timedelta
-from fastapi import HTTPException, Depends
+
+from fastapi import Depends, HTTPException, WebSocket
+from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from sqlalchemy.orm import Session
-from ..repositories.users import UsersRepository
+
 from ..database.database import get_db
 from ..database.models import User
-from fastapi.security import OAuth2PasswordBearer
-
+from ..repositories.users import UsersRepository
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -85,3 +86,36 @@ def check_farmer_approval(token: str = Depends(oauth2_scheme), db: Session = Dep
             status_code=403, detail="Access forbidden: Farmer is not approved."
         )
     return user
+
+async def get_current_user_websocket(websocket: WebSocket, db: Session = Depends(get_db)) -> User:
+    try:
+        token = websocket.query_params.get("token")
+        if not token:
+            raise HTTPException(status_code=403, detail="Token is missing")
+
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+
+        if not user_id:
+            raise HTTPException(status_code=403, detail="Invalid token")
+
+        user = users_repository.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=403, detail="User not found")
+
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=403, detail="Token has expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=403, detail="Invalid token")
+
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    try:
+        user_id = decode_jwt_token(token)
+        user = users_repository.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+        return user
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")

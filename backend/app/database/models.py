@@ -1,18 +1,10 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Float,
-    ForeignKey,
-    Text,
-    DateTime,
-    Boolean,
-    Enum,
-)
+
+from sqlalchemy import (Boolean, Column, DateTime, Enum, Float, ForeignKey,
+                        Integer, String, Text)
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+
 from .database import Base
-import pytz
-from datetime import datetime
 
 
 class User(Base):
@@ -34,6 +26,7 @@ class User(Base):
     # posts = relationship("Post", back_populates="user")
     comments = relationship("Comment", back_populates="user")
     cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
+    verification_codes = relationship("VerificationCode", back_populates="user")
 
     @property
     def profile(self):
@@ -120,7 +113,7 @@ class Order(Base):
         Enum("Pending", "Processing", "Delivered", "Cancelled", name="order_status"),
         default="Pending",
     )
-    created_at = Column(DateTime, default=datetime.now(pytz.timezone("Asia/Almaty")))
+    created_at = Column(DateTime(timezone=True), default=func.now())
 
     buyer = relationship("BuyerProfile", back_populates="orders")
     items = relationship("OrderItem", back_populates="order")
@@ -144,7 +137,7 @@ class Comment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     content = Column(Text, nullable=False)
-    created_at = Column(DateTime, default=datetime.now(pytz.timezone("Asia/Almaty")))
+    created_at = Column(DateTime(timezone=True), default=func.now())
     author_id = Column(Integer, ForeignKey("users.id"))
     product_id = Column(Integer, ForeignKey("products.id"))
 
@@ -172,7 +165,7 @@ class Chat(Base):
     buyer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     farmer_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
-    messages = relationship("Message", back_populates="chat")
+    messages = relationship("Message", back_populates="chat", cascade="all, delete-orphan")
 
 
 class Message(Base):
@@ -182,8 +175,10 @@ class Message(Base):
     chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False)
     sender_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     content = Column(Text, nullable=False)
+    timestamp = Column(DateTime(timezone=True), default=func.now())
 
     chat = relationship("Chat", back_populates="messages")
+    sender = relationship("User", backref="messages_sent")
 
 
 class CartItem(Base):
@@ -196,3 +191,16 @@ class CartItem(Base):
 
     user = relationship("User", back_populates="cart_items")
     product = relationship("Product")
+
+
+class VerificationCode(Base):
+    __tablename__ = "verification_codes"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # Nullable for registration
+    email = Column(String, index=True, nullable=False)  # For registration, user might not exist yet
+    code = Column(String, nullable=False)
+    purpose = Column(String, nullable=False)  # 'registration' or 'login'
+    expires_at = Column(DateTime, nullable=False)
+    
+    user = relationship("User", back_populates="verification_codes")

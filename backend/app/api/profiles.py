@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends, Response, HTTPException
-from sqlalchemy.orm import Session
-from ..repositories.users import UsersRepository
-from ..schemas.farmers import FarmerProfileCreate
-from ..schemas.buyers import BuyerProfileCreate
-from ..database.database import get_db
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
 
+from ..database.database import get_db
+from ..schemas.buyers import BuyerProfileCreate
+from ..schemas.farmers import FarmerProfileCreate
 from ..schemas.users import UserUpdate
-from ..utils.security import decode_jwt_token, check_user_role
+from ..utils.security import check_user_role, decode_jwt_token
 from .auth import users_repository
 
 router = APIRouter()
@@ -108,14 +107,11 @@ def update_user(
 
 @router.get("/farmer/{farmer_id}")
 def get_profile(farmer_id: int, db: Session = Depends(get_db)):
-    farmer = users_repository.get_user_by_id(db, farmer_id)
-
-    # Use the 'profile' property
-    profile = farmer.profile
+    farmer = users_repository.get_profile_by_id(db, farmer_id)
 
     # if user.role == "Admin":
     #     return {"message": "Admin users do not have a specific profile."}
-    if not profile:
+    if not farmer:
         raise HTTPException(status_code=404, detail="Profile not found")
 
-    return profile
+    return farmer

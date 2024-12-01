@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TypographyH1, TypographyH3, TypographyH4, TypographyP } from "@/components/ui/typography";
+import { TypographyH1, TypographyH3, TypographyP } from "@/components/ui/typography";
 import { Product } from "@/lib/types/product";
 import { FarmerProfile } from "@/lib/types/profile";
 import { ImageCarousel } from "@/widgets/ImageCarousel";
@@ -65,7 +65,7 @@ export const ProductPage = () => {
             try {
                 const token = JSON.parse(localStorage.getItem("token") || "{}");
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_BACKEND}/profiles/farmer/${product?.farmer_id || 1}`,
+                    `${process.env.NEXT_PUBLIC_BACKEND}/profiles/farmer/${product?.farmer_id}`,
                     {
                         method: "GET",
                         headers: {
@@ -98,7 +98,7 @@ export const ProductPage = () => {
             try {
                 const token = JSON.parse(localStorage.getItem("token") || "{}");
                 const response = await fetch(
-                    `${process.env.NEXT_PUBLIC_BACKEND}/auth/users/${product?.farmer_id || 1}`,
+                    `${process.env.NEXT_PUBLIC_BACKEND}/auth/users/${farmerProfile?.user_id}`,
                     {
                         method: "GET",
                         headers: {
@@ -130,7 +130,7 @@ export const ProductPage = () => {
         try {
             const token = JSON.parse(localStorage.getItem("token") || "{}");
             const response = await fetch(
-                `${process.env.NEXT_PUBLIC_BACKEND}/chat/${product?.farmer_id}`,
+                `${process.env.NEXT_PUBLIC_BACKEND}/chat/chats/${farmerProfile?.user_id}`,
                 {
                     method: "POST",
                     headers: {
@@ -142,7 +142,7 @@ export const ProductPage = () => {
             );
             if (response.ok) {
                 const data = await response.json();
-                router.push(`/chats/${data.chat_id}`);
+                router.push(`/chats/${data.id}`);
             }
         } catch (error) {
             console.error("Error creating chat:", error);

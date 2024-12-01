@@ -1,18 +1,26 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
+import threading
+import time
+
+import requests
+import socketio
+from app.api.admin import router as admin_router
 from app.api.auth import router as auth_router
-from app.api.products import router as products_router
-from app.api.profiles import router as profiles_router
+from app.api.cart import router as cart_router
+from app.api.chat import router as chat_router
+from app.api.checkout import router as checkout_router
 from app.api.comments import router as comments_router
 from app.api.orders import router as orders_router
-from app.api.chat import router as chat_router
-from app.api.admin import router as admin_router
+from app.api.products import router as products_router
+from app.api.profiles import router as profiles_router
+from app.api.webhook import router as webhooks_router
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import requests
-import time
-import threading
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI()
+
+sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins=[])
+socket_app = socketio.ASGIApp(sio, other_asgi_app=app)
 
 # Middleware
 app.add_middleware(
@@ -31,6 +39,9 @@ app.include_router(comments_router, prefix="/comments", tags=["comments"])
 app.include_router(orders_router, prefix="/orders", tags=["orders"])
 app.include_router(chat_router, prefix="/chat", tags=["chat"])
 app.include_router(admin_router)
+app.include_router(checkout_router, prefix="/checkout", tags=["Checkout"])
+app.include_router(webhooks_router, prefix="/webhooks", tags=["Webhooks"])
+app.include_router(cart_router, prefix="/cart", tags=["Carts"])
 app.mount("/static", StaticFiles(directory="uploaded_images"), name="static")
 
 

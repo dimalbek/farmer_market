@@ -1,9 +1,10 @@
 # In app/utils/file_upload.py
 
 import os
-from fastapi import UploadFile, HTTPException
 from typing import List
 from uuid import uuid4
+
+from fastapi import UploadFile
 
 UPLOAD_DIRECTORY = "uploaded_images"
 

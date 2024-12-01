@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr
 from typing import Optional
+
+from pydantic import BaseModel, EmailStr
 from pydantic_extra_types.phone_numbers import PhoneNumber
 
 
@@ -21,6 +22,15 @@ class UserCreate(BaseModel):
             }
         }
 
+class UserEmail(BaseModel):
+    email: EmailStr
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "john@example.com",
+            }
+        }
 
 class UserUpdate(BaseModel):
     fullname: Optional[str] = None
@@ -62,5 +72,6 @@ class PasswordResetRequest(BaseModel):
 
 
 class PasswordResetConfirm(BaseModel):
-    token: str
+    email: EmailStr
+    code: str
     new_password: str

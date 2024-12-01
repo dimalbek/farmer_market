@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from ..schemas.cart import Cart
+
+from ..database.database import get_db
 from ..repositories.cart import CartRepository
 from ..utils.security import decode_jwt_token
-from ..database.database import get_db
-from fastapi.security import OAuth2PasswordBearer
 
 router = APIRouter()
 cart_repository = CartRepository()
@@ -16,7 +16,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
 def get_cart(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     user_id = decode_jwt_token(token)
     cart_items = cart_repository.get_cart(db, user_id)
-    return [{"product_id": item.product_id, "quantity": item.quantity} for item in cart_items]
+    return [
+        {
+            "product_id": cart_item.product_id,
+            "product_name": product.name,
+            "price": product.price,
+            "quantity": cart_item.quantity
+        }
+        for cart_item, product in cart_items
+    ]
 
 
 @router.post("/")

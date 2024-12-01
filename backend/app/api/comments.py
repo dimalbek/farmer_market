@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, Response, HTTPException
+from fastapi import APIRouter, Depends, Response
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+
+from ..database.database import get_db
 from ..repositories.comments import CommentsRepository
 from ..schemas.comments import CommentCreate, CommentInfoList
-from ..database.database import get_db
-from fastapi.security import OAuth2PasswordBearer
-from ..utils.security import decode_jwt_token, check_user_role
+from ..utils.security import check_user_role, decode_jwt_token
 
 router = APIRouter()
 comments_repository = CommentsRepository()

@@ -1,40 +1,33 @@
-from fastapi import APIRouter, Depends, Response, HTTPException
-from sqlalchemy.orm import Session
-from ..repositories.orders import OrdersRepository
-from ..schemas.orders import OrderCreate, OrderUpdate, OrderInfo
-from ..database.database import get_db
+from typing import List
+
+from fastapi import APIRouter, Depends, Response
 from fastapi.security import OAuth2PasswordBearer
-from ..utils.security import decode_jwt_token, check_user_role
+from sqlalchemy.orm import Session
+
+from ..database.database import get_db
+from ..repositories.orders import OrdersRepository
+from ..schemas.orders import OrderInfo, OrderUpdate
+from ..utils.security import check_user_role, decode_jwt_token
 
 router = APIRouter()
 orders_repository = OrdersRepository()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
 
-
-# Create a new order (Buyers only)
-@router.post("/", status_code=200)
-def create_order(
-    order_input: OrderCreate,
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db),
-):
+@router.get("/", response_model=List[OrderInfo])
+def get_orders(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     """
-    Create a new order.
+    Get all orders for the authenticated user.
 
-    - **order_input**: The details of the order to create.
-    - **token**: The access token of the user (must be a Buyer).
+    - **token**: The access token of the user.
     - **db**: Database session.
 
     Returns:
-    - A success message with the created order's ID.
+    - A list of orders belonging to the user.
     """
-    check_user_role(token, db, ["Buyer"])
     user_id = decode_jwt_token(token)
-    order = orders_repository.create_order(db, order_input, user_id)
-    return Response(content=f"Order with id {order.id} created", status_code=200)
+    orders = orders_repository.get_orders_by_user_id(db, user_id)
+    return orders
 
-
-# Get an order by its ID
 @router.get("/{order_id}", response_model=OrderInfo)
 def get_order(
     order_id: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
