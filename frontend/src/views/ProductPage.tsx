@@ -29,6 +29,7 @@ export const ProductPage = () => {
     const [farmer, setFarmer] = useState<Farmer | null>(null);
     const params = useParams();
     const router = useRouter();
+    
     useEffect(() => {
         const fetchProduct = async () => {
         try {
@@ -220,7 +221,7 @@ export const ProductPage = () => {
             </div>
             <div className="fixed bottom-0 left-0 w-full h-max flex items-center gap-2 p-2 !pb-4 bg-[white] shadow-md border-t">
                 <Button variant="outline" className="w-full mt-4" onClick={handleCreateChat}>Chat</Button>
-                <Button className="w-full mt-4" onClick={handleAddToCart}>Add to Cart</Button>
+                <Button variant="outline" className="w-full mt-4" onClick={handleAddToCart}>Add to Cart</Button>
             </div>
         </div>)
 }
