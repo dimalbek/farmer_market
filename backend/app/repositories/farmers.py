@@ -1,10 +1,8 @@
-from sqlalchemy.orm import Session
-from ..database.models import FarmerProfile, User
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
-from ..database.models import User
+from sqlalchemy.orm import Session, joinedload
+
+from ..database.models import FarmerProfile, User
 
 
 class FarmersRepository:

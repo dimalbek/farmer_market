@@ -1,15 +1,16 @@
+from datetime import datetime, timedelta
 from typing import List
 
 from fastapi import HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from ..database.models import User, BuyerProfile, FarmerProfile, VerificationCode
-from ..schemas.users import UserCreate, UserLogin, UserUpdate
-from ..schemas.buyers import BuyerProfileCreate
-from ..schemas.farmers import FarmerProfileCreate
+
+from ..database.models import (BuyerProfile, FarmerProfile, User,
+                               VerificationCode)
+from ..schemas.users import UserCreate, UserUpdate
 from ..schemas.verification_code import VerificationCodeCreate
 from ..utils.code_generator import generate_verification_code
-from datetime import datetime, timedelta
+
 
 class UsersRepository:
     def create_user(self, db: Session, user_data: UserCreate) -> User:

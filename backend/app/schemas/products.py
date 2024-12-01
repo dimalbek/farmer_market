@@ -1,11 +1,11 @@
+from typing import List, Optional
+
 from pydantic import BaseModel
-from typing import Optional, List
 
 
 class ProductImageInfo(BaseModel):
     id: int
     image_url: str
-
     class Config:
         orm_mode = True
 

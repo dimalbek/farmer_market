@@ -1,9 +1,12 @@
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from ..database.models import Order, OrderItem, Product
-from ..schemas.orders import OrderCreate, OrderUpdate, OrderInfo
 from typing import List
+
+from fastapi import HTTPException
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from ..database.models import Order, OrderItem, Product
+from ..schemas.orders import OrderCreate, OrderUpdate
+
 
 class OrdersRepository:
     def create_order(self, db: Session, order_data: OrderCreate, buyer_id: int) -> Order:

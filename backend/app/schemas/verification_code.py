@@ -1,5 +1,6 @@
+
 from pydantic import BaseModel, EmailStr
-from datetime import datetime
+
 
 class VerificationCodeCreate(BaseModel):
     email: EmailStr
