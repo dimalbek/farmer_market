@@ -12,7 +12,7 @@ const SuccessView = () => {
   };
 
   const handleViewOrders = () => {
-    router.push("/orders");  
+    router.push("/orderspage");  
   };
 
   return (

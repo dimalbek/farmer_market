@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TypographyH4, TypographyP, TypographySmall } from "@/components/ui/typography";
@@ -18,10 +18,10 @@ const OrderPage = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
+  const params = useParams();  
   const router = useRouter();
 
-  const orderId = searchParams.get("order_id");
+  const orderId = params?.orderId;  
 
   useEffect(() => {
     const fetchOrder = async () => {
