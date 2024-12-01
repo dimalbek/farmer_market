@@ -13,10 +13,18 @@ from ..schemas.users import (FarmerProfileInfo, ProfileInfo, UserInfo,
                              UserUpdate)
 from ..utils.security import decode_jwt_token
 from ..utils.email_utils import send_email
+from enum import Enum
+
+class ApprovalStatusEnum(str, Enum):
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    PENDING = "pending"
+
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
 oauth2_scheme_2factor = OAuth2PasswordBearer(tokenUrl="/auth/users/login/confirm")
 users_repository = UsersRepository()
+
 def admin_required(
         token: str = Depends(oauth2_scheme_2factor), db: Session = Depends(get_db)
 ):
@@ -111,8 +119,9 @@ def get_all_buyers(db: Session = Depends(get_db)):
 @router.patch("/{user_id}/approve")
 def approve_farmer(
     user_id: int,
-    is_approved: bool,
+    # is_approved: bool,
     background_tasks: BackgroundTasks,
+    approval_status: ApprovalStatusEnum = Query(..., description="New approval status."),
     reason: Optional[str] = Query(None, description="Reason for disapproval. Required if disapproving."),
     db: Session = Depends(get_db)
 ):
@@ -122,14 +131,21 @@ def approve_farmer(
     Query Parameter:
     - is_approved (bool): The new approval status.
     """
-    farmer = farmers_repository.update_farmer_approval(db, user_id, is_approved)
+    if approval_status == ApprovalStatusEnum.REJECTED and not reason:
+        raise HTTPException(
+            status_code=400,
+            detail="Reason for rejection must be provided when rejecting a farmer."
+        )
+
+
+    farmer = farmers_repository.update_farmer_approval(db, user_id, approval_status)
     if not farmer:
         raise HTTPException(status_code=404, detail="Farmer profile not found")
 
-    status_message = "approved" if is_approved else "disapproved"
+    status_message = f"Farmer has been {approval_status.value}."
     
     # If disapproving, ensure a reason is provided
-    if not is_approved:
+    if approval_status == ApprovalStatusEnum.REJECTED:
         if not reason:
             raise HTTPException(
                 status_code=400,
@@ -142,7 +158,7 @@ def approve_farmer(
         raise HTTPException(status_code=400, detail="User email not found.")
 
     # Prepare email details
-    if is_approved:
+    if approval_status == ApprovalStatusEnum.APPROVED:
         subject = "Your Farmer Profile Has Been Approved"
         body = f"""\
         Hi {user.fullname},
