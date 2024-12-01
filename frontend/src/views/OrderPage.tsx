@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TypographyH4, TypographyP, TypographySmall } from "@/components/ui/typography";
+import { useToast } from "@/hooks/use-toast";
 
 interface Product {
   id: number;
@@ -32,8 +34,10 @@ const OrderPage = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [comment, setComment] = useState<{ [productId: number]: string }>({});
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
 
   const orderId = params?.orderId;
 
@@ -78,6 +82,60 @@ const OrderPage = () => {
     fetchOrder();
   }, [orderId]);
 
+  const handleCommentChange = (productId: number, value: string) => {
+    setComment((prev) => ({
+      ...prev,
+      [productId]: value,
+    }));
+  };
+
+  const handleCommentSubmit = async (productId: number) => {
+    try {
+      const token = JSON.parse(localStorage.getItem("token") || "{}");
+
+      if (!token?.access_token) {
+        throw new Error("Token is missing or invalid.");
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND}/comments/products/${productId}/comments`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token.access_token}`,
+          },
+          body: JSON.stringify({ content: comment[productId] }),
+        }
+      );
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Comment added successfully!",
+          variant: "default",
+        });
+        setComment((prev) => ({
+          ...prev,
+          [productId]: "", // Clear the comment input after submission
+        }));
+      } else {
+        const errorData = await response.json();
+        toast({
+          title: "Error",
+          description: errorData?.message || "Failed to add comment.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <section className="w-full flex flex-col items-center gap-4">
       <h1 className="text-2xl font-bold text-center">Order Details</h1>
@@ -117,6 +175,23 @@ const OrderPage = () => {
                 <TypographyP>
                   <strong>Quantity:</strong> {item.quantity}
                 </TypographyP>
+
+                <div className="mt-2">
+                  <Input
+                    placeholder="Write your comment..."
+                    value={comment[item.product.id] || ""}
+                    onChange={(e) => handleCommentChange(item.product.id, e.target.value)}
+                    className="w-full mb-2"
+                  />
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={() => handleCommentSubmit(item.product.id)}
+                    disabled={!comment[item.product.id]?.trim()}
+                  >
+                    Add Comment
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
