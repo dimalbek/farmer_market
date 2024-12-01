@@ -87,6 +87,7 @@ class AuthProvider with ChangeNotifier {
   Future<bool> register(Map<String, dynamic> loginData) async {
     triggerLoad();
     Response? userdata = await AuthService().register(loginData);
+    print('userdata: $userdata');
     if (userdata == null || userdata.statusCode != 200) {
       String errMsg = "";
       try {

@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:farmer_app_2/models/cart_item.dart';
 import 'package:farmer_app_2/services/cart_services.dart';
 import 'package:farmer_app_2/widgets/toast_message.dart';
 import 'package:flutter/material.dart';
@@ -13,14 +14,16 @@ class CartProvider with ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
-  Future<String> getCart(String token) async {
+  Future<List<CartItem>> getCart(String token) async {
     triggerLoad();
     print("Getting cart...");
     try {
       final response = await CartServices().getCart(token);
       print('response: $response');
       triggerLoad();
-      return '';
+      final List<dynamic> list = response!.data;
+      final cartItems = list.map((e) => CartItem.fromJson(e)).toList();
+      return cartItems;
     } catch (e) {
       triggerLoad();
       throw e.toString();
@@ -37,8 +40,66 @@ class CartProvider with ChangeNotifier {
         token,
       );
       print('response: $response');
+      if (response != null && response.statusCode! < 300) {
+        successToast(response.data['message']);
+      } else {
+        try {
+          throw response!.data['detail'][0]['msg'];
+        } catch (e) {
+          throw 'JSON error (client side)';
+        }
+      }
       triggerLoad();
-      print("It is here");
+    } catch (e) {
+      triggerLoad();
+      throw e.toString();
+    }
+  }
+
+  Future<String> clearOrRemoveItemFromCart(
+      String? productId, String token) async {
+    print("Removing from cart...");
+
+    try {
+      final response =
+          await CartServices().clearOrRemoveItemFromCart(productId, token);
+      print('response: $response');
+      if (response != null && response.statusCode! < 300) {
+        successToast(response.data['message']);
+        triggerLoad();
+        return response.data['message'];
+      } else {
+        triggerLoad();
+        try {
+          throw response!.data['detail'][0]['msg'];
+        } catch (e) {
+          throw 'JSON error (client side)';
+        }
+      }
+    } catch (e) {
+      triggerLoad();
+      throw e.toString();
+    }
+  }
+
+  Future<String> getCartTotal(String token) async {
+    print("Getting cart total...");
+    try {
+      final response = await CartServices().getCartTotal(token);
+      print('response: $response');
+      triggerLoad();
+      if (response != null && response.statusCode! < 300) {
+        successToast(response.data['message']);
+        triggerLoad();
+        return response.data['message'];
+      } else {
+        triggerLoad();
+        try {
+          throw response!.data['detail'][0]['msg'];
+        } catch (e) {
+          throw 'JSON error (client side)';
+        }
+      }
     } catch (e) {
       triggerLoad();
       throw e.toString();

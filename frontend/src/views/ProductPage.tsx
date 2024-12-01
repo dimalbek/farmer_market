@@ -153,31 +153,37 @@ export const ProductPage = () => {
         try {
             const token = JSON.parse(localStorage.getItem("token") || "{}");
     
-            const url = new URL(`${process.env.NEXT_PUBLIC_BACKEND}/cart/`);
-            url.searchParams.append("product_id", String(product?.id || ""));
-            url.searchParams.append("quantity", "1");
-        
-            const response = await fetch(url.toString(), {
+            const url = `${process.env.NEXT_PUBLIC_BACKEND}/cart/`;
+    
+            const requestBody = {
+                product_id: product?.id || 0,
+                quantity: 1
+            };
+    
+            const response = await fetch(url, {
                 method: "POST",
                 headers: {
                     "ngrok-skip-browser-warning": "true",
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token.access_token}`,
                 },
+                body: JSON.stringify(requestBody),
             });
     
             if (response.ok) {
                 const responseData = await response.json();
-                console.log("Success:", responseData);  
+                console.log("Success:", responseData);
             } else if (response.status === 422) {
                 const errorData = await response.json();
-                console.error("Validation Error:", errorData);  
+                console.error("Validation Error:", errorData);
+            } else {
                 console.error("Failed to add to cart:", response.status, response.statusText);
             }
         } catch (error) {
             console.error("An error occurred while adding to cart:", error);
         }
     };
+    
     
     
     
