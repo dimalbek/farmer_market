@@ -4,10 +4,12 @@
 # from fastapi import BackgroundTasks
 # from pydantic import EmailStr
 # from typing import List
-from app.config import (
-    MAIL_USERNAME,
-    MAIL_PASSWORD,
-)
+
+from app.config import MAIL_PASSWORD, MAIL_USERNAME
+from fastapi import HTTPException
+from fastapi_mail import ConnectionConfig, FastMail, MessageSchema, MessageType
+from pydantic import EmailStr
+from starlette.responses import JSONResponse
 
 # print(f"MAIL_USERNAME: {MAIL_USERNAME}")
 # print(f"MAIL_FROM: {MAIL_FROM}")
@@ -31,11 +33,6 @@ from app.config import (
 
 # email_utils.py
 
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
-from starlette.responses import JSONResponse
-from pydantic import EmailStr
-from typing import List
-from fastapi import HTTPException
 
 # Email configuration
 conf = ConnectionConfig(

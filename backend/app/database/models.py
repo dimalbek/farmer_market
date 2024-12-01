@@ -1,19 +1,10 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Float,
-    ForeignKey,
-    Text,
-    DateTime,
-    Boolean,
-    Enum,
-)
+
+from sqlalchemy import (Boolean, Column, DateTime, Enum, Float, ForeignKey,
+                        Integer, String, Text)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
 from .database import Base
-import pytz
-from datetime import datetime
 
 
 class User(Base):
@@ -59,7 +50,11 @@ class FarmerProfile(Base):
     location = Column(String, nullable=False)
     farm_size = Column(Float, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))
-    is_approved = Column(Boolean, default=True)
+    is_approved = Column(
+        Enum("approved", "rejected", "pending", name="approval_status"),
+        default="pending",
+        nullable=False
+    )
 
     user = relationship("User", back_populates="farmer_profile")
     products = relationship("Product", back_populates="farmer")

@@ -1,10 +1,8 @@
-from sqlalchemy.orm import Session
-from ..database.models import FarmerProfile, User
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
-from sqlalchemy.orm import joinedload
-from ..database.models import User
+from sqlalchemy.orm import Session, joinedload
+
+from ..database.models import FarmerProfile, User
 
 
 class FarmersRepository:
@@ -34,7 +32,7 @@ class FarmersRepository:
         if not farmer:
             return None
 
-        farmer.is_approved = True
+        farmer.is_approved = "approved"
         try:
             db.commit()
             db.refresh(farmer)
@@ -45,17 +43,23 @@ class FarmersRepository:
             )
         return farmer
 
-    def update_farmer_approval(self, db: Session, user_id: int, is_approved: bool):
+    def update_farmer_approval(self, db: Session, user_id: int, approval_status: str):
         """
         Set is_approved to the given boolean value for a farmer profile by user_id.
         """
+        if approval_status not in ("approved", "rejected", "pending"):
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid approval status. Must be 'approved', 'rejected', or 'pending'."
+            )
+    
         farmer = (
             db.query(FarmerProfile).filter(FarmerProfile.user_id == user_id).first()
         )
         if not farmer:
             return None
 
-        farmer.is_approved = is_approved
+        farmer.is_approved = approval_status
         try:
             db.commit()
             db.refresh(farmer)
