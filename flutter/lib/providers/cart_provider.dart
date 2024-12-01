@@ -7,6 +7,10 @@ import 'package:flutter/material.dart';
 class CartProvider with ChangeNotifier {
   bool _isLoading = false;
 
+  List<CartItem>? _cartList;
+
+  List<CartItem>? get cartList => _cartList;
+
   void triggerLoad() {
     _isLoading = !_isLoading;
     notifyListeners();
@@ -23,6 +27,7 @@ class CartProvider with ChangeNotifier {
       triggerLoad();
       final List<dynamic> list = response!.data;
       final cartItems = list.map((e) => CartItem.fromJson(e)).toList();
+      _cartList = cartItems;
       return cartItems;
     } catch (e) {
       triggerLoad();
@@ -59,13 +64,12 @@ class CartProvider with ChangeNotifier {
   Future<String> clearOrRemoveItemFromCart(
       String? productId, String token) async {
     print("Removing from cart...");
-
+    triggerLoad();
     try {
       final response =
           await CartServices().clearOrRemoveItemFromCart(productId, token);
       print('response: $response');
       if (response != null && response.statusCode! < 300) {
-        successToast(response.data['message']);
         triggerLoad();
         return response.data['message'];
       } else {
@@ -82,14 +86,46 @@ class CartProvider with ChangeNotifier {
     }
   }
 
-  Future<String> getCartTotal(String token) async {
+  Future<double> getCartTotal(String token) async {
+    triggerLoad();
     print("Getting cart total...");
     try {
       final response = await CartServices().getCartTotal(token);
-      print('response: $response');
+      print('getCartTotal response: $response');
       triggerLoad();
-      if (response != null && response.statusCode! < 300) {
-        successToast(response.data['message']);
+      if (response != null && response.statusCode == 200) {
+        triggerLoad();
+        return response.data['total_price'];
+      } else {
+        triggerLoad();
+        try {
+          throw response!.data['detail'][0]['msg'];
+        } catch (e) {
+          throw 'JSON error (client side)';
+        }
+      }
+    } catch (e) {
+      triggerLoad();
+      throw e.toString();
+    }
+  }
+
+  Future<String?> updateCartItem(
+    String productId,
+    int quantity,
+    String token,
+  ) async {
+    triggerLoad();
+    print("Updating cart item...");
+    try {
+      final response = await CartServices().updateCartItem(
+        productId,
+        quantity,
+        token,
+      );
+      print('updateCartItem response: $response');
+      triggerLoad();
+      if (response != null && response.statusCode == 200) {
         triggerLoad();
         return response.data['message'];
       } else {
@@ -101,6 +137,7 @@ class CartProvider with ChangeNotifier {
         }
       }
     } catch (e) {
+      print("Error caught trying to update the cart item: ${e.toString()}");
       triggerLoad();
       throw e.toString();
     }

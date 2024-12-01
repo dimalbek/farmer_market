@@ -89,11 +89,9 @@ const OrdersPage = () => {
         if (!Array.isArray(fetchedOrders)) {
           throw new Error("Unexpected response format. Expected an array.");
         }
-
         const sortedOrders = fetchedOrders.sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
-
         setOrders(sortedOrders);
       } catch (error) {
         setError(
@@ -107,7 +105,6 @@ const OrdersPage = () => {
     fetchOrders();
   }, []);
 
-  // Filter orders based on date range
   useEffect(() => {
     if (startDate && endDate) {
       const filtered = orders.filter((order) => {
