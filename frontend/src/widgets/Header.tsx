@@ -5,7 +5,7 @@ import { TypographyH4 } from "@/components/ui/typography";
 import { useUser } from "@/contexts/user/context";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingCart } from "lucide-react"; 
+import { MessageCircle, ShoppingCart } from "lucide-react"; 
 
 export const Header = () => {
   const { user } = useUser();
@@ -23,6 +23,10 @@ export const Header = () => {
     router.push("/cart");
   };
 
+  const handleChatClick = () => {
+    router.push("/chats");
+  };
+
   return (
     <header className="w-full flex items-center p-4 border-b shadow-md">
       <Link href="/" className="mr-auto">
@@ -36,9 +40,14 @@ export const Header = () => {
           </Link>
         )}
         {user?.role === "Buyer" && (
-          <button onClick={handleCartClick} className="bg-white text-black p-2">
-            <ShoppingCart size={24} />
-          </button>
+          <>
+            <button onClick={handleCartClick} className="bg-white text-black p-2">
+              <ShoppingCart size={24} />
+            </button>
+            <button onClick={handleChatClick} className="bg-white text-black p-2">
+              <MessageCircle size={24} />
+            </button>
+          </>
         )}
       </nav>
 

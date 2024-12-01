@@ -248,7 +248,7 @@ const BuyerProfileComponent: FC = () => {
       <div className="w-[calc(100%-2rem)] max-w-[500px] flex justify-center">
         <Button
           className="w-full"
-          onClick={() => router.push("/orderspage")}
+          onClick={() => router.push("/orders")}
         >
           My Orders
         </Button>
