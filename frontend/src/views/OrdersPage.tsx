@@ -51,7 +51,11 @@ const OrdersPage = () => {
           throw new Error("Unexpected response format. Expected an array.");
         }
 
-        setOrders(fetchedOrders);
+        const sortedOrders = fetchedOrders.sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+
+        setOrders(sortedOrders);
       } catch (error) {
         setError(error instanceof Error ? error.message : "An unexpected error occurred.");
       } finally {
