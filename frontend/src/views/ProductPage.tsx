@@ -9,8 +9,8 @@ import { FarmerProfile } from "@/lib/types/profile";
 import { ImageCarousel } from "@/widgets/ImageCarousel";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
- 
-
+import { useToast } from "@/hooks/use-toast";
+import React from "react";
 
 
 interface Farmer  {
@@ -29,7 +29,8 @@ export const ProductPage = () => {
     const [farmer, setFarmer] = useState<Farmer | null>(null);
     const params = useParams();
     const router = useRouter();
-    
+    const { toast } = useToast();
+
     useEffect(() => {
         const fetchProduct = async () => {
         try {
@@ -149,43 +150,59 @@ export const ProductPage = () => {
         }
     }
 
-    const handleAddToCart = async () => {
-        try {
-            const token = JSON.parse(localStorage.getItem("token") || "{}");
+     
+const handleAddToCart = async () => {
     
-            const url = `${process.env.NEXT_PUBLIC_BACKEND}/cart/`;
-    
-            const requestBody = {
-                product_id: product?.id || 0,
-                quantity: 1
-            };
-    
-            const response = await fetch(url, {
-                method: "POST",
-                headers: {
-                    "ngrok-skip-browser-warning": "true",
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token.access_token}`,
-                },
-                body: JSON.stringify(requestBody),
-            });
-    
-            if (response.ok) {
-                const responseData = await response.json();
-                console.log("Success:", responseData);
-            } else if (response.status === 422) {
-                const errorData = await response.json();
-                console.error("Validation Error:", errorData);
-            } else {
-                console.error("Failed to add to cart:", response.status, response.statusText);
-            }
-        } catch (error) {
-            console.error("An error occurred while adding to cart:", error);
-        }
-    };
-    
-    
-    
+
+    try {
+        const token = JSON.parse(localStorage.getItem("token") || "{}");
+
+        const url = `${process.env.NEXT_PUBLIC_BACKEND}/cart/`;
+
+        const requestBody = {
+            product_id: product?.id || 0,
+            quantity: 1,
+        };
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "ngrok-skip-browser-warning": "true",
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token.access_token}`,
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (response.ok) {
+            toast({
+          title: "Success",
+          description: "Product added to cart successfully!",
+          variant: "default",
+        });
+      } else if (response.status === 422) {
+        const errorData = await response.json();
+        toast({
+          title: "Validation Error",
+          description: errorData?.message || "Invalid data. Please check the product details.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: `Failed to add to cart: ${response.status} ${response.statusText}`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while adding to cart.",
+        variant: "destructive",
+      });
+    }
+};
+
     
     
     if (loading) {

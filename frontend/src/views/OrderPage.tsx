@@ -6,22 +6,36 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TypographyH4, TypographyP, TypographySmall } from "@/components/ui/typography";
 
+interface Product {
+  id: number;
+  name: string;
+  description: string;
+  category: string;
+  price: number;
+}
+
+interface OrderItem {
+  product: Product;
+  quantity: number;
+}
+
 interface Order {
   id: number;
   total_price: number;
   status: string;
   created_at: string;
   buyer_id: number;
+  items: OrderItem[];
 }
 
 const OrderPage = () => {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const params = useParams();  
+  const params = useParams();
   const router = useRouter();
 
-  const orderId = params?.orderId;  
+  const orderId = params?.orderId;
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -83,9 +97,30 @@ const OrderPage = () => {
           <TypographySmall>
             <strong>Created At:</strong> {new Date(order.created_at).toLocaleString()}
           </TypographySmall>
-          <TypographyP>
-            <strong>Buyer ID:</strong> {order.buyer_id}
-          </TypographyP>
+
+          <div className="mt-4">
+            <TypographyH4 className="mb-2">Order Items</TypographyH4>
+            {order.items.map((item, index) => (
+              <div key={index} className="mb-4 p-2 border border-gray-100 rounded-md">
+                <TypographyP>
+                  <strong>Product:</strong> {item.product.name}
+                </TypographyP>
+                <TypographyP>
+                  <strong>Description:</strong> {item.product.description}
+                </TypographyP>
+                <TypographyP>
+                  <strong>Category:</strong> {item.product.category}
+                </TypographyP>
+                <TypographyP>
+                  <strong>Price:</strong> {item.product.price} ₸
+                </TypographyP>
+                <TypographyP>
+                  <strong>Quantity:</strong> {item.quantity}
+                </TypographyP>
+              </div>
+            ))}
+          </div>
+
           <Button
             variant="outline"
             className="mt-4"
