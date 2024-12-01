@@ -1,13 +1,14 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Response, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
 from ..database.database import get_db
+from ..database.models import User, FarmerProfile
 from ..repositories.orders import OrdersRepository
-from ..schemas.orders import OrderInfo, OrderUpdate
-from ..utils.security import check_user_role, decode_jwt_token
+from ..schemas.orders import OrderInfo, OrderUpdate, FarmerOrderInfo
+from ..utils.security import check_user_role, decode_jwt_token, users_repository
 
 router = APIRouter()
 orders_repository = OrdersRepository()
@@ -100,3 +101,29 @@ def delete_order(
     check_user_role(token, db, ["Admin"])
     orders_repository.delete_order(db, order_id)
     return Response(content=f"Order with id {order_id} deleted", status_code=200)
+
+
+@router.get("/farmer/orders", response_model=List[FarmerOrderInfo])
+def get_farmer_orders(
+        token: str = Depends(oauth2_scheme),
+        db: Session = Depends(get_db)
+):
+    """
+    Get all orders placed to a specific farmer.
+
+    - **farmer_id**: The ID of the farmer.
+    - **token**: The access token of the user.
+    - **db**: Database session.
+
+    Returns:
+    - A list of orders with buyer and product details related to the farmer.
+    """
+    user_id = decode_jwt_token(token)
+
+    check_user_role(token, db, ["Farmer"])
+    user = users_repository.get_user_by_id(db, user_id)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials.")
+
+    farmer_orders = orders_repository.get_orders_by_farmer_id(db, user_id)
+    return farmer_orders
