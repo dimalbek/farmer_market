@@ -70,7 +70,6 @@ class CartProvider with ChangeNotifier {
           await CartServices().clearOrRemoveItemFromCart(productId, token);
       print('response: $response');
       if (response != null && response.statusCode! < 300) {
-        successToast(response.data['message']);
         triggerLoad();
         return response.data['message'];
       } else {

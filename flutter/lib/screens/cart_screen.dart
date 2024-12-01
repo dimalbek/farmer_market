@@ -147,6 +147,54 @@ class _CartScreenState extends State<CartScreen> {
                 },
               ),
             ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () async {
+                    try {
+                      final res = await context
+                          .read<CartProvider>()
+                          .clearOrRemoveItemFromCart(
+                            null,
+                            getUser(context)!.token,
+                          );
+                      successToast(res);
+                    } catch (e) {
+                      failToast(e.toString());
+                    }
+                    setState(() {});
+                  },
+                  child: const Text("Clear Cart"),
+                ),
+                const SizedBox(
+                  width: 5.0,
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    try {
+                      context.read<CartProvider>().clearOrRemoveItemFromCart(
+                            null,
+                            getUser(context)!.token,
+                          );
+                      successToast('Chechout Completed!');
+                    } catch (e) {
+                      failToast(e.toString());
+                    }
+                    setState(() {});
+                  },
+                  child: const Text("Checkout"),
+                ),
+              ],
+            )
           ],
         ),
       ),
