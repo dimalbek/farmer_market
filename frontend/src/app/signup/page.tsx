@@ -1,9 +1,9 @@
 
-import Registration from "@/views/Registration"
+import RegistrationEmail from "@/views/RegistrationEmail"
 
 const Page = () => {
     return (
-        <Registration />
+        <RegistrationEmail />
     )
 }
 
