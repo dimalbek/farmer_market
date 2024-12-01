@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from ..database.database import get_db
 from ..repositories.cart import CartRepository
+from ..schemas.cart import CartItem
 from ..utils.security import decode_jwt_token
 
 router = APIRouter()
@@ -28,9 +29,9 @@ def get_cart(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db))
 
 
 @router.post("/")
-def add_to_cart(product_id: int, quantity: int, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def add_to_cart(item: CartItem, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     user_id = decode_jwt_token(token)
-    cart_item = cart_repository.add_to_cart(db, user_id, product_id, quantity)
+    cart_item = cart_repository.add_to_cart(db, user_id, item.product_id, item.quantity)
     return {"message": "Item added to cart",
             "cart_item": {"product_id": cart_item.product_id, "quantity": cart_item.quantity}}
 
@@ -46,13 +47,13 @@ def remove_from_cart(product_id: int, token: str = Depends(oauth2_scheme), db: S
 
 
 @router.put("/{product_id}")
-def update_cart_item(product_id: int, quantity: int, token: str = Depends(oauth2_scheme),
+def update_cart_item(item: CartItem, token: str = Depends(oauth2_scheme),
                      db: Session = Depends(get_db)):
     """
     Update the quantity of a specific product in the cart.
     """
     user_id = decode_jwt_token(token)
-    cart_item = cart_repository.update_cart_item_quantity(db, user_id, product_id, quantity)
+    cart_item = cart_repository.update_cart_item_quantity(db, user_id, item.product_id, item.quantity)
     return {"message": "Cart item updated.",
             "cart_item": {"product_id": cart_item.product_id, "quantity": cart_item.quantity}}
 
