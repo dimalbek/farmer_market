@@ -288,12 +288,12 @@ async def confirm_password_reset(
     )
     if not is_valid:
         raise HTTPException(status_code=400, detail="Invalid or expired verification code.")
-
-    # Retrieve the user
+    
+     # Retrieve the user
     user = users_repository.get_user_by_email(db, password_reset_confirm.email)
     if not user:
         raise HTTPException(status_code=404, detail="User not found.")
-
+    
     # Update the user's password
     user.password_hashed = hash_password(password_reset_confirm.new_password)
     db.commit()
@@ -302,6 +302,37 @@ async def confirm_password_reset(
         status_code=status.HTTP_200_OK,
         content={"message": "Password has been reset successfully."}
     )
+
+
+# # Step 4: Confirm Password Reset
+# @router.post("/users/password-reset/confirm", status_code=200)
+# async def confirm_password_reset(
+#     password_reset_confirm: PasswordResetConfirm,
+#     db: Session = Depends(get_db)
+# ):
+#     # Verify the code
+#     is_valid = users_repository.verify_code(
+#         db,
+#         password_reset_confirm.email,
+#         password_reset_confirm.code,
+#         "password_reset"
+#     )
+#     if not is_valid:
+#         raise HTTPException(status_code=400, detail="Invalid or expired verification code.")
+
+#     # Retrieve the user
+#     user = users_repository.get_user_by_email(db, password_reset_confirm.email)
+#     if not user:
+#         raise HTTPException(status_code=404, detail="User not found.")
+
+#     # Update the user's password
+#     user.password_hashed = hash_password(password_reset_confirm.new_password)
+#     db.commit()
+
+#     return JSONResponse(
+#         status_code=status.HTTP_200_OK,
+#         content={"message": "Password has been reset successfully."}
+#     )
 
 
 # @router.post("/auth/request-password-reset")
