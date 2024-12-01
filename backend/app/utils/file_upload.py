@@ -7,11 +7,12 @@ from uuid import uuid4
 from fastapi import UploadFile
 
 UPLOAD_DIRECTORY = "uploaded_images"
-
+UPLOAD_DIRECTORY1 = "../flutter/uploaded_images"
 
 def save_product_images(images: List[UploadFile]) -> List[str]:
     image_urls = []
     os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
+    os.makedirs(UPLOAD_DIRECTORY1, exist_ok=True)
     for image in images:
         # You might want to add validation for image types here
         # Reset file pointer to the beginning
@@ -24,6 +25,10 @@ def save_product_images(images: List[UploadFile]) -> List[str]:
 
         # Save the file
         with open(file_path, "wb") as buffer:
+            buffer.write(image.file.read())
+
+        file_path1 = os.path.join(UPLOAD_DIRECTORY1, unique_filename)
+        with open(file_path1, "wb") as buffer:
             buffer.write(image.file.read())
 
         image_url = f"/static/{unique_filename}"

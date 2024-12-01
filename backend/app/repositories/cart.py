@@ -30,6 +30,7 @@ class CartRepository:
             item = CartItem(user_id=user_id, product_id=product_id, quantity=quantity)
             db.add(item)
         db.commit()
+        db.refresh(item)
         return item
 
     def clear_cart(self, db: Session, user_id: int):
