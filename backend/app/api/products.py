@@ -1,15 +1,17 @@
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, Response, HTTPException, File, UploadFile, Form
-from sqlalchemy.orm import Session
-from ..repositories.products import ProductsRepository
-from ..schemas.products import ProductCreate, ProductUpdate, ProductInfo
-from ..database.database import get_db
+from fastapi import (APIRouter, Depends, File, Form, HTTPException, Query,
+                     Response, UploadFile)
 from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
 
-from ..utils.file_upload import save_product_images
-from ..utils.security import decode_jwt_token, check_user_role, check_farmer_approval
+from ..database.database import get_db
 from ..database.models import User
+from ..repositories.products import ProductsRepository
+from ..schemas.products import ProductCreate, ProductInfo, ProductUpdate
+from ..utils.file_upload import save_product_images
+from ..utils.security import (check_farmer_approval, check_user_role,
+                              decode_jwt_token)
 
 router = APIRouter()
 products_repository = ProductsRepository()
@@ -148,29 +150,33 @@ def get_products_by_farmer(farmer_id: int, db: Session = Depends(get_db)):
     return products
 
 
-@router.get("/search", response_model=list[ProductInfo])
+@router.get("/search", response_model=List[ProductInfo])
 def search_products(
-        db: Session = Depends(get_db),
-        category: str = None,
-        price_from: float = 0.0,
-        price_until: float = -1.0,
-        quantity_from: int = 0,
-        quantity_until: int = -1,
+    db: Session = Depends(get_db),
+    name: Optional[str] = Query(None, description="Filter products by name (partial match)"),
+    category: Optional[str] = Query(None, description="Filter products by category"),
+    farm_location: Optional[str] = Query(None, description="Filter products by farm location (partial match)"),
+    price_from: float = Query(0.0, description="Minimum price"),
+    price_until: float = Query(-1.0, description="Maximum price (-1 for no limit)"),
+    sort_by: Optional[str] = Query(
+        None, description="Sorting options: 'price_asc', 'price_desc', 'popularity', 'newest'"
+    ),
 ):
     """
-    Search for products based on category, price range, and quantity range.
+    Search for products based on name, category, farm location, price range, and sorting options.
 
+    - **name**: Filter products by name (partial match).
     - **category**: Filter products by category.
+    - **farm_location**: Filter products by farm location (partial match).
     - **price_from**: Minimum price.
     - **price_until**: Maximum price (use -1 for no upper limit).
-    - **quantity_from**: Minimum quantity.
-    - **quantity_until**: Maximum quantity (use -1 for no upper limit).
+    - **sort_by**: Sorting options: 'price_asc', 'price_desc', 'popularity', 'newest'.
 
     Returns:
     - A list of products matching the search criteria.
     """
     products = products_repository.search_products(
-        db, category, price_from, price_until, quantity_from, quantity_until
+        db, name, category, farm_location, price_from, price_until, sort_by
     )
     return products
 

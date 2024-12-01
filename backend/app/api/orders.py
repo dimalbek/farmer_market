@@ -1,12 +1,13 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Response, HTTPException
-from sqlalchemy.orm import Session
-from ..repositories.orders import OrdersRepository
-from ..schemas.orders import OrderCreate, OrderUpdate, OrderInfo
-from ..database.database import get_db
+from fastapi import APIRouter, Depends, Response
 from fastapi.security import OAuth2PasswordBearer
-from ..utils.security import decode_jwt_token, check_user_role
+from sqlalchemy.orm import Session
+
+from ..database.database import get_db
+from ..repositories.orders import OrdersRepository
+from ..schemas.orders import OrderInfo, OrderUpdate
+from ..utils.security import check_user_role, decode_jwt_token
 
 router = APIRouter()
 orders_repository = OrdersRepository()

@@ -1,12 +1,12 @@
-import os
-from uuid import uuid4
+from typing import List
 
-from fastapi import HTTPException, UploadFile
+from fastapi import HTTPException
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from ..database.models import Product, FarmerProfile, ProductImage
+
+from ..database.models import FarmerProfile, OrderItem, Product, ProductImage
 from ..schemas.products import ProductCreate, ProductUpdate
-from typing import List
 
 
 class ProductsRepository:
@@ -68,28 +68,48 @@ class ProductsRepository:
         products = db.query(Product).filter(Product.farmer_id == farmer_id).all()
         return products
 
-
     def search_products(
-        self,
-        db: Session,
-        category: str = None,
-        price_from: float = 0.0,
-        price_until: float = -1.0,
-        quantity_from: int = 0,
-        quantity_until: int = -1,
+            self,
+            db: Session,
+            name: str = None,
+            category: str = None,
+            farm_location: str = None,
+            price_from: float = 0.0,
+            price_until: float = -1.0,
+            sort_by: str = None,
     ):
         """Search for products based on various filters."""
         query = db.query(Product)
 
+        # Join with FarmerProfile if farm_location is specified
+        if farm_location:
+            query = query.join(Product.farmer)
+            query = query.filter(FarmerProfile.location.ilike(f"%{farm_location.lower()}%"))
+
+        if name:
+            query = query.filter(Product.name.ilike(f"%{name.lower()}%"))
+
         if category:
             query = query.filter(Product.category == category)
+
         if price_until != -1.0:
             query = query.filter(Product.price <= price_until)
         query = query.filter(Product.price >= price_from)
 
-        if quantity_until != -1:
-            query = query.filter(Product.quantity <= quantity_until)
-        query = query.filter(Product.quantity >= quantity_from)
+        # Sorting
+        if sort_by == 'price_asc':
+            query = query.order_by(Product.price.asc())
+        elif sort_by == 'price_desc':
+            query = query.order_by(Product.price.desc())
+        elif sort_by == 'popularity':
+            # Order by number of order_items (number of times the product has been ordered)
+            query = (
+                query.outerjoin(Product.order_items)
+                .group_by(Product.id)
+                .order_by(func.count(OrderItem.id).desc())
+            )
+        elif sort_by == 'newest':
+            query = query.order_by(Product.created_at.desc())
 
         return query.all()
 

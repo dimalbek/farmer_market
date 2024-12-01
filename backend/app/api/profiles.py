@@ -1,13 +1,13 @@
-from fastapi import APIRouter, Depends, Response, HTTPException
-from sqlalchemy.orm import Session
-from ..repositories.users import UsersRepository
-from ..schemas.farmers import FarmerProfileCreate
-from ..schemas.buyers import BuyerProfileCreate
-from ..database.database import get_db
+from fastapi import APIRouter, Depends, HTTPException, Response
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
+from ..database.database import get_db
+from ..schemas.buyers import BuyerProfileCreate
+from ..schemas.farmers import FarmerProfileCreate
 from ..schemas.users import UserUpdate
-from ..utils.security import decode_jwt_token, check_user_role
+from ..utils.security import check_user_role, decode_jwt_token
 from .auth import users_repository
 
 router = APIRouter()
@@ -23,7 +23,12 @@ def create_farmer_profile(
 ):
     check_user_role(token, db, ["Farmer", "Admin"])
     user_id = decode_jwt_token(token)
-    users_repository.create_profile(db, user_id, profile_data)
+    profile = users_repository.create_profile(db, user_id, profile_data)
+    return profile
+    # return JSONResponse(
+    #     status_code=200,
+    #     content={"message": "Farmer profile created"}
+    # )
     return Response(content="Farmer profile created", status_code=200)
 
 
@@ -36,7 +41,12 @@ def create_buyer_profile(
 ):
     check_user_role(token, db, ["Buyer", "Admin"])
     user_id = decode_jwt_token(token)
-    users_repository.create_profile(db, user_id, profile_data)
+    profile = users_repository.create_profile(db, user_id, profile_data)
+    return profile
+    return JSONResponse(
+        status_code=200,
+        content={"message": "Buyer profile created"}
+    )
     return Response(content="Buyer profile created", status_code=200)
 
 
