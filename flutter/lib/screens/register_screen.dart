@@ -67,6 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void createFarmer(BuildContext context, String token) {
+    print("Creating farmer profile...");
     context.read<ProfileProvider>().createFarmerProfile(
       {
         farmNameField: _farmName.text,
@@ -78,6 +79,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   void createBuyer(BuildContext context, String token) {
+    print("Creating buyer profile...");
     context.read<ProfileProvider>().createBuyerProfile(
       {
         deliveryAddressField: _deliveryAddress.text,
