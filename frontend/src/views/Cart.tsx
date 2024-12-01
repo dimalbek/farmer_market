@@ -71,6 +71,14 @@ const CartView = () => {
     setDeliveryCost(deliveryOption === "delivery" ? 1000 : 0);
   }, [deliveryOption]);
 
+  useEffect(() => {
+    localStorage.setItem("deliveryOption", deliveryOption);
+  }, [deliveryOption]);
+
+  const handleCheckout = () => {
+    localStorage.setItem("deliveryOption", deliveryOption);  
+    router.push("/payment");  
+  };
 
   const handleRemoveItem = async (productId: number) => {
     try {
@@ -159,10 +167,7 @@ const CartView = () => {
     }
   };
 
-  const handleCheckout = () => {
-    router.push("/checkout");
-  };
-
+   
   return (
     <section className="w-full flex flex-col items-center gap-4">
       <h1 className="text-2xl font-bold text-center">Your Cart</h1>
@@ -220,13 +225,20 @@ const CartView = () => {
       )}
 
       {cartItems.length > 0 && (
-        <div className="w-full max-w-3xl mt-4 flex justify-between items-center">
-          <TypographyH4>Total: {cartTotal} ₸</TypographyH4>
-
-          <div>
-            <TypographyP>Delivery Option:</TypographyP>
-            <div className="flex gap-2">
-              <label>
+        <div className="w-full max-w-3xl mt-4 flex flex-col gap-4">
+        <TypographyH4 className="text-lg font-semibold">Cart Total:</TypographyH4>
+        <div className="flex justify-between items-center">
+          <TypographyP className="text-gray-700">Total:</TypographyP>
+          <TypographyP className="text-gray-900 font-medium">{cartTotal} ₸</TypographyP>
+        </div>
+        <hr className="border-gray-300 my-2" />
+      
+        <div>
+          <TypographyP className="text-lg font-semibold mb-2">Delivery Option:</TypographyP>
+          <div className="flex justify-between items-center">
+            <TypographyP className="text-gray-700">Delivery:</TypographyP>
+            <div className="flex gap-4">
+              <label className="flex items-center">
                 <input
                   type="radio"
                   name="deliveryOption"
@@ -234,9 +246,9 @@ const CartView = () => {
                   checked={deliveryOption === "pickup"}
                   onChange={(e) => setDeliveryOption(e.target.value)}
                 />
-                Pickup (0 ₸)
+                <span className="ml-2">Pickup (0 ₸)</span>
               </label>
-              <label>
+              <label className="flex items-center">
                 <input
                   type="radio"
                   name="deliveryOption"
@@ -244,15 +256,19 @@ const CartView = () => {
                   checked={deliveryOption === "delivery"}
                   onChange={(e) => setDeliveryOption(e.target.value)}
                 />
-                Delivery (1000 ₸)
+                <span className="ml-2">Delivery (1000 ₸)</span>
               </label>
             </div>
           </div>
-
-          <div>
-            <TypographyP>Payment Option:</TypographyP>
-            <div className="flex gap-2">
-              <label>
+        </div>
+        <hr className="border-gray-300 my-2" />
+      
+        <div>
+          <TypographyP className="text-lg font-semibold mb-2">Payment Option:</TypographyP>
+          <div className="flex justify-between items-center">
+            <TypographyP className="text-gray-700">Payment:</TypographyP>
+            <div className="flex gap-4">
+              <label className="flex items-center">
                 <input
                   type="radio"
                   name="paymentOption"
@@ -260,9 +276,9 @@ const CartView = () => {
                   checked={paymentOption === "cash"}
                   onChange={(e) => setPaymentOption(e.target.value)}
                 />
-                Cash
+                <span className="ml-2">Cash</span>
               </label>
-              <label>
+              <label className="flex items-center">
                 <input
                   type="radio"
                   name="paymentOption"
@@ -270,27 +286,30 @@ const CartView = () => {
                   checked={paymentOption === "card"}
                   onChange={(e) => setPaymentOption(e.target.value)}
                 />
-                Card
+                <span className="ml-2">Card</span>
               </label>
             </div>
           </div>
-
-          <div>
-            <TypographyH4>Delivery Cost: {deliveryCost} ₸</TypographyH4>
-            <TypographyH4>
-              Total Amount: {cartTotal + deliveryCost} ₸
-            </TypographyH4>
-          </div>
-
-          <div className="flex gap-2">
-            <Button variant="destructive" onClick={handleClearCart}>
-              Clear Cart
-            </Button>
-            <Button onClick={handleCheckout} variant="default">
-              Checkout
-            </Button>
-          </div>
         </div>
+        <hr className="border-gray-300 my-2" />
+      
+        <div className="flex justify-between items-center">
+          <TypographyP className="text-gray-700">Delivery Cost:</TypographyP>
+          <TypographyP className="text-gray-900 font-medium">{deliveryCost} ₸</TypographyP>
+        </div>
+        <div className="flex justify-between items-center">
+          <TypographyP className="text-gray-700 font-semibold">Total Amount:</TypographyP>
+          <TypographyH4 className="text-gray-900 font-bold">{cartTotal + deliveryCost} ₸</TypographyH4>
+        </div>
+        <hr className="border-gray-300 my-2" />
+      
+        <div className="flex justify-end gap-2">
+          <Button variant="destructive">Clear Cart</Button>
+          <Button onClick={handleCheckout} variant="default">
+            Checkout
+          </Button>
+        </div>
+      </div>        
       )}
     </section>
   );

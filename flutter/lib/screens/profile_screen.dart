@@ -121,12 +121,13 @@ class RoleFutureBuilder extends StatelessWidget {
     if (buyerProfile == null && farmerProfile == null) {
       return const Text("Role is not specified.");
     }
+    print('-----------$role');
     if (role == 'Farmer') {
       return FutureBuilder(
           future: farmerProfile,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              print(snapshot.data);
+              print('Farmer profile data: ${snapshot.data}');
               if (snapshot.data == null) {
                 return ElevatedButton(
                   onPressed: () {
@@ -171,7 +172,7 @@ class RoleFutureBuilder extends StatelessWidget {
           future: buyerProfile,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
-              print(snapshot.data);
+              print('Buyer profile data: ${snapshot.data}');
               if (snapshot.data == null) {
                 return ElevatedButton(
                   onPressed: () {
@@ -280,14 +281,14 @@ class BuyerProfileCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Farmer Profile',
+              'Buyer Profile',
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
             ),
             Text(
-              'Farm size: $deliveryAddress',
+              'Delivery address: $deliveryAddress',
               style: const TextStyle(
                 fontSize: 16,
               ),
