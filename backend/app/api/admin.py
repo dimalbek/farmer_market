@@ -14,9 +14,10 @@ from ..utils.security import decode_jwt_token
 from ..utils.email_utils import send_email
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")
+oauth2_scheme_2factor = OAuth2PasswordBearer(tokenUrl="/auth/users/login/confirm")
 users_repository = UsersRepository()
 def admin_required(
-        token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)
+        token: str = Depends(oauth2_scheme_2factor), db: Session = Depends(get_db)
 ):
     user_id = decode_jwt_token(token)
     user = users_repository.get_user_by_id(db, user_id)
