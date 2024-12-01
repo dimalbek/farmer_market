@@ -78,6 +78,9 @@ class UsersRepository:
         except IntegrityError:
             db.rollback()
             raise HTTPException(status_code=400, detail="Integrity error")
+        
+        finally:
+            return profile
 
     def get_user_by_email(self, db: Session, email: str) -> User:
         """Get user by email (for login purposes)"""
