@@ -40,7 +40,7 @@ app.include_router(orders_router, prefix="/orders", tags=["orders"])
 app.include_router(chat_router, prefix="/chat", tags=["chat"])
 app.include_router(admin_router)
 app.include_router(checkout_router, prefix="/checkout", tags=["Checkout"])
-app.include_router(webhooks_router, prefix="/webhooks", tags=["Webhooks"])
+app.include_router(webhooks_router, tags=["Webhooks"])
 app.include_router(cart_router, prefix="/cart", tags=["Carts"])
 app.mount("/static", StaticFiles(directory="uploaded_images"), name="static")
 

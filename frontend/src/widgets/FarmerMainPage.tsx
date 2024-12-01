@@ -1,5 +1,5 @@
 import { TypographyP } from "@/components/ui/typography"
-import { LayoutListIcon, MessageCircle, Plus } from "lucide-react"
+import { LayoutListIcon, ListOrdered, MessageCircle, Plus } from "lucide-react"
 import Link from "next/link"
 
 
@@ -15,9 +15,13 @@ export const FarmerMainPage = () => {
                     <LayoutListIcon size={32} />
                     <TypographyP className="!m-0 !p-0">My products</TypographyP>
                 </Link>
-                <Link href={'/product'} className="w-full flex flex-col justify-center items-center gap-1">
+                <Link href={'/chats'} className="w-full flex flex-col justify-center items-center gap-1">
                     <MessageCircle size={32} />
                     <TypographyP className="!m-0 !p-0">Messenger</TypographyP>
+                </Link>
+                <Link href={'/farmerorders'} className="w-full flex flex-col justify-center items-center gap-1">
+                    <ListOrdered size={32} />
+                    <TypographyP className="!m-0 !p-0">Orders</TypographyP>
                 </Link>
             </div>
         </section>
