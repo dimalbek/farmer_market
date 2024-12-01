@@ -22,6 +22,15 @@ class UserCreate(BaseModel):
             }
         }
 
+class UserEmail(BaseModel):
+    email: EmailStr
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "email": "john@example.com",
+            }
+        }
 
 class UserUpdate(BaseModel):
     fullname: Optional[str] = None
