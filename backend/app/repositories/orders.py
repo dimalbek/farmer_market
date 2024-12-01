@@ -2,10 +2,11 @@ from typing import List
 
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,  joinedload
 
-from ..database.models import Order, OrderItem, Product, BuyerProfile, User
-from ..schemas.orders import OrderCreate, OrderUpdate, FarmerOrderInfo, OrderedProductInfo, BuyerInfo
+from ..database.models import Order, OrderItem, Product, BuyerProfile, User, FarmerProfile
+from ..schemas.orders import OrderCreate, OrderUpdate, FarmerOrderInfo, OrderedProductDetail, BuyerInfo, \
+    FarmerPurchasedProducts, PurchasedProductInfo, ProductInfo
 import logging
 logging.basicConfig(
     level=logging.INFO,  # Записывать все логи уровня INFO и выше
@@ -70,10 +71,20 @@ class OrdersRepository:
         return new_order
 
     def get_order_by_id(self, db: Session, order_id: int) -> Order:
-        """Retrieve an order by its ID."""
-        order = db.query(Order).filter(Order.id == order_id).first()
+        """Retrieve an order by its ID, включая OrderItems и Products."""
+        logger.info(f"Fetching order with ID: {order_id}")
+        order = (
+            db.query(Order)
+            .options(
+                joinedload(Order.items).joinedload(OrderItem.product)
+            )
+            .filter(Order.id == order_id)
+            .first()
+        )
         if not order:
+            logger.warning(f"Order with ID {order_id} not found.")
             raise HTTPException(status_code=404, detail="Order not found")
+        logger.info(f"Order with ID {order_id} fetched successfully.")
         return order
 
     def get_orders_by_user_id(self, db: Session, user_id: int) -> List[Order]:
@@ -119,55 +130,48 @@ class OrdersRepository:
             db.rollback()
             raise HTTPException(status_code=500, detail="Error deleting order")
 
-    def get_orders_by_farmer_id(self, db: Session, farmer_id: int) -> List[FarmerOrderInfo]:
-        """Retrieve all orders and buyers for a specific farmer."""
-        logger.info(f"Fetching orders for farmer_id: {farmer_id}")
+    def get_purchased_products_by_farmer_user_id(self, db: Session, farmer_user_id: int) -> FarmerPurchasedProducts:
+        logger.info(f"Fetching purchased products for farmer_user_id: {farmer_user_id}")
         try:
-            # Join Order, OrderItem, Product, BuyerProfile, User
-            orders = (
-                db.query(Order)
-                .join(OrderItem, Order.id == OrderItem.order_id)
-                .join(Product, OrderItem.product_id == Product.id)
-                .join(BuyerProfile, Order.buyer_id == BuyerProfile.id)
-                .join(User, BuyerProfile.user_id == User.id)
-                .filter(Product.farmer_id == farmer_id)
+            farmer_profile = db.query(FarmerProfile).filter(FarmerProfile.user_id == farmer_user_id).first()
+            if not farmer_profile:
+                logger.warning(f"FarmerProfile not found for user_id: {farmer_user_id}")
+                raise HTTPException(status_code=404, detail="Farmer profile not found.")
+
+            logger.info(f"Found FarmerProfile: id={farmer_profile.id}")
+
+            order_items = (
+                db.query(OrderItem)
+                .join(Product)
+                .join(Order)
+                .filter(Product.farmer_id == farmer_profile.id)
                 .all()
             )
 
-            farmer_orders = []
-            for order in orders:
-                # Filter OrderItems that belong to the farmer
-                relevant_items = [
-                    OrderedProductInfo(
-                        product_id=item.product.id,
+            logger.info(f"Number of OrderItems fetched: {len(order_items)}")
+
+            purchases = []
+            for item in order_items:
+                purchase = PurchasedProductInfo(
+                    product=ProductInfo(
+                        id=item.product.id,
                         name=item.product.name,
-                        quantity=item.quantity,
+                        description=item.product.description,
+                        category=item.product.category,
                         price=item.product.price
-                    )
-                    for item in order.items
-                    if item.product.farmer_id == farmer_id
-                ]
+                    ),
+                    quantity=item.quantity,
+                    purchase_time=item.order.created_at
+                )
+                purchases.append(purchase)
 
-                if relevant_items:
-                    farmer_orders.append(
-                        FarmerOrderInfo(
-                            order_id=order.id,
-                            total_price=order.total_price,
-                            status=order.status,
-                            created_at=order.created_at,
-                            buyer=BuyerInfo(
-                                id=order.buyer.user.id,
-                                fullname=order.buyer.user.fullname,
-                                email=order.buyer.user.email,
-                                phone=order.buyer.user.phone
-                            ),
-                            items=relevant_items
-                        )
-                    )
+            logger.info(f"Retrieved {len(purchases)} purchased products for farmer_user_id: {farmer_user_id}")
 
-            logger.info(f"Retrieved {len(farmer_orders)} orders for farmer_id: {farmer_id}")
-            return farmer_orders
+            return FarmerPurchasedProducts(purchases=purchases)
 
+        except HTTPException as e:
+            logger.error(f"Error fetching purchased products for farmer_user_id {farmer_user_id}: {e.detail}")
+            raise e
         except Exception as e:
-            logger.exception("Error fetching orders by farmer_id")
-            raise HTTPException(status_code=500, detail="Internal server error while fetching orders.")
+            logger.exception("Error fetching purchased products by farmer_user_id")
+            raise HTTPException(status_code=500, detail="Internal server error while fetching purchased products.")
