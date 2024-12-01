@@ -10,7 +10,15 @@ import {
 } from "@/components/ui/table"
 import { useEffect, useState } from "react"
 import { BuyerProfile, FarmerProfile } from "@/lib/types/profile"
-import { Switch } from "@/components/ui/switch"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+  } from "@/components/ui/dialog"
+  
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 import {
@@ -20,6 +28,9 @@ import {
 } from "@/components/ui/hover-card"
 import { TypographyP } from "@/components/ui/typography"
 import { Trash2, Edit } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { toast } from "@/hooks/use-toast"
 
 interface Detail {
     id: string;
@@ -45,6 +56,9 @@ export const Dashboard = () => {
     const [buyers, setBuyers] = useState<BuyerDetail[]>([]);
 
     const [editingUser, setEditingUser] = useState<Detail | BuyerDetail | null>(null);
+    const [isOpened, setOpened] = useState<'approved' | 'rejected' | false>(false);
+    const [currentFarmer, setCurrentFarmer] = useState<any>(null);
+    const [comment, setComment] = useState('')
 
     const [formData, setFormData] = useState({
         fullname: '',
@@ -120,14 +134,14 @@ export const Dashboard = () => {
         }
     }, [editingUser]);
 
-    const handleChange = (checked: boolean, userId: string) => {
+    const handleChange = (status: "approved" | "pending" | "rejected", userId: string, reason: string) => {
         setFarmers((prev) => prev.map((farmer) => {
             if (farmer.id === userId) {
                 return {
                     ...farmer,
                     profile: {
                         ...farmer.profile,
-                        is_approved: checked
+                        is_approved: status,
                     }
                 }
             }
@@ -136,7 +150,7 @@ export const Dashboard = () => {
         const token = localStorage.getItem('token')
         if (!token) return;
         try {
-            fetch(`${process.env.NEXT_PUBLIC_BACKEND}/admin/${userId}/approve?is_approved=${checked}`, {
+            fetch(`${process.env.NEXT_PUBLIC_BACKEND}/admin/${userId}/approve?approval_status=${status}&reason=${reason}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -147,6 +161,10 @@ export const Dashboard = () => {
                 .then(response => response.json())
                 .then(data => {
                     console.log('Success:', data);
+                    toast({
+                        title: 'Success',
+                        description: 'User status updated successfully',
+                    })
                 })
                 .catch((error) => {
                     console.error('Error:', error);
@@ -154,6 +172,13 @@ export const Dashboard = () => {
         }
         catch (error) {
             console.log(error)
+        }
+        finally {
+            setComment('')
+
+            setCurrentFarmer(null)
+            setOpened(false);
+
         }
         
     }
@@ -234,7 +259,6 @@ export const Dashboard = () => {
                     body: JSON.stringify(body)
                 });
                 const data = await response.json();
-                console.log('Success:', data);
 
                 if (editingUser.role === 'Farmer') {
                     setFarmers((prev) => prev.map((farmer) => {
@@ -280,6 +304,20 @@ export const Dashboard = () => {
 
     return (
         <main className="w-full flex flex-col items-center gap-2">
+            <Dialog open={isOpened ? true : false} onOpenChange={() => setOpened(false)}>
+                <DialogContent>
+                    <DialogHeader>
+                    <DialogTitle>Please leave your comment</DialogTitle>
+                    <Textarea value={comment} onChange={(value) => setComment(value.target.value)} />
+                    <Button onClick={
+                        () => handleChange(isOpened as 'approved' | 'rejected', currentFarmer, comment)
+                    }
+                        className="w-full"
+                    >Submit</Button>
+                    </DialogHeader>
+                </DialogContent>
+            </Dialog>
+
             <Tabs defaultValue="farmers" className="w-full max-w-[80vw] m-auto">
                 <TabsList>
                     <TabsTrigger value="farmers">Farmers</TabsTrigger>
@@ -294,7 +332,7 @@ export const Dashboard = () => {
                                 <TableHead>Farm name</TableHead>
                                 <TableHead>Location</TableHead>
                                 <TableHead className="w-[100px]">Farm size</TableHead>
-                                <TableHead className="w-[150px] text-center">Is approved</TableHead>
+                                <TableHead className="w-[150px] text-center">Status</TableHead>
                                 <TableHead className="w-[50px]"></TableHead>
                                 <TableHead className="w-[50px]"></TableHead>
                             </TableRow>
@@ -321,8 +359,28 @@ export const Dashboard = () => {
                                     <TableCell>{invoice.profile?.farm_name}</TableCell>
                                     <TableCell>{invoice.profile?.location}</TableCell>
                                     <TableCell>{invoice.profile?.farm_size}</TableCell>
-                                    <TableCell className="w-full flex flex-col items-center">
-                                        <Switch id="is_approved" onCheckedChange={(checked) => handleChange(checked, invoice.id)} checked={invoice.profile?.is_approved} />
+                                    <TableCell className="w-full flex items-center justify-center">
+                                        {
+                                                invoice.profile.is_approved === 'approved' ? (
+                                                    "Approved"
+                                                )
+                                            :
+                                                invoice.profile.is_approved === 'pending' ? (
+                                                    "Pending"
+                                                )
+                                            :
+                                                invoice.profile.is_approved === 'rejected' ? ("Rejected") : null
+                                        }
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button disabled={
+                                            invoice.profile.is_approved === 'approved'
+                                        } onClick={() => {setOpened('approved'); setCurrentFarmer(invoice.id)}}>Approve</Button>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button disabled={
+                                            invoice.profile.is_approved === 'rejected'
+                                        } onClick={() => {setOpened('rejected'); setCurrentFarmer(invoice.id)}}>Reject</Button>
                                     </TableCell>
                                     <TableCell>
                                         <Edit className="cursor-pointer" size={24} onClick={() => setEditingUser(invoice)} />
@@ -390,51 +448,51 @@ export const Dashboard = () => {
             {/* Render the form when editingUser is not null */}
             {editingUser && (
                 <div className="fixed top-0 left-0 w-full h-full bg-[black] bg-opacity-50 flex items-center justify-center">
-<form onSubmit={handleUpdateUser} className="w-full max-w-md bg-white shadow-md  rounded-lg px-8 pt-6 pb-8 mb-4">
-                    <h2 className="text-xl font-bold mb-4">Edit User</h2>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
-                        <input
-                            type="text"
-                            name="fullname"
-                            value={formData.fullname}
-                            onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            required
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            required
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700 text-sm font-bold mb-2">Phone</label>
-                        <input
-                            type="text"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            required
-                        />
-                    </div>
+                    <form onSubmit={handleUpdateUser} className="w-full max-w-md bg-white shadow-md  rounded-lg px-8 pt-6 pb-8 mb-4">
+                        <h2 className="text-xl font-bold mb-4">Edit User</h2>
+                        <div className="mb-4">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Full Name</label>
+                            <input
+                                type="text"
+                                name="fullname"
+                                value={formData.fullname}
+                                onChange={(e) => setFormData({ ...formData, fullname: e.target.value })}
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                required
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                            <input
+                                type="email"
+                                name="email"
+                                value={formData.email}
+                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                required
+                            />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Phone</label>
+                            <input
+                                type="text"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                required
+                            />
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                        <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            Update User
-                        </button>
-                        <button type="button" onClick={() => setEditingUser(null)} className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-                            Cancel
-                        </button>
-                    </div>
-                </form>
+                        <div className="flex items-center justify-between">
+                            <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                                Update User
+                            </button>
+                            <button type="button" onClick={() => setEditingUser(null)} className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
                 </div>
                 
             )}

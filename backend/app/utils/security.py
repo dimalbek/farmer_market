@@ -81,7 +81,7 @@ def check_farmer_approval(token: str = Depends(oauth2_scheme), db: Session = Dep
         raise HTTPException(
             status_code=403, detail="Access forbidden: User is not a farmer."
         )
-    if not user.farmer_profile or not user.farmer_profile.is_approved:
+    if not user.farmer_profile or user.farmer_profile.is_approved != "approved":
         raise HTTPException(
             status_code=403, detail="Access forbidden: Farmer is not approved."
         )

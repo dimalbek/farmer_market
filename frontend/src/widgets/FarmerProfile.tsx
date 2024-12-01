@@ -96,6 +96,7 @@ const FarmerProfileComponent: FC = () => {
         description: "Farmer profile created successfully!",
         variant: "default",
       });
+      
     } else {
       toast({
         title: "Error",
