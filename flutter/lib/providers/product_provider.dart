@@ -13,6 +13,7 @@ class ProductProvider with ChangeNotifier {
     print("Getting all products");
     try {
       Response? res = await PostService().getAllProducts();
+      print(res);
       if (res != null) {
         print("Decoding json list...");
         final List<dynamic> products = res.data;
