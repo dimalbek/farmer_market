@@ -114,7 +114,7 @@ class Order(Base):
     buyer_id = Column(Integer, ForeignKey("buyer_profiles.id"))
     total_price = Column(Float, nullable=False)
     status = Column(
-        Enum("Pending", "Processing", "Delivered", "Cancelled", name="order_status"),
+        Enum("Pending", "Processing", "Paid", "Cancelled", name="order_status"),
         default="Pending",
     )
     created_at = Column(DateTime(timezone=True), default=func.now())
