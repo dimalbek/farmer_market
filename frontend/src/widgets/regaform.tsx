@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
+  code: z.string().min(6),
   email: z.string().email(),
   password: z.string().min(6),
   phone: z.string().min(10).max(12),
@@ -51,7 +52,7 @@ export const RegistrationForm= () => {
     localStorage.setItem("user", JSON.stringify(values));
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/auth/users`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/auth/users/register/confirm`, {
         method: "POST",
         body: JSON.stringify(values),
         headers: {
@@ -97,6 +98,19 @@ export const RegistrationForm= () => {
               <FormLabel>Full name</FormLabel>
               <FormControl>
                 <Input placeholder="John Doe" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="code"
+          render={({ field }) => (
+            <FormItem className="w-full">
+              <FormLabel>Code</FormLabel>
+              <FormControl>
+                <Input placeholder="Enter code" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
