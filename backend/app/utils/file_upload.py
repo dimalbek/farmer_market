@@ -8,7 +8,6 @@ from fastapi import UploadFile
 
 UPLOAD_DIRECTORY = "uploaded_images"
 
-
 def save_product_images(images: List[UploadFile]) -> List[str]:
     image_urls = []
     os.makedirs(UPLOAD_DIRECTORY, exist_ok=True)
