@@ -22,6 +22,7 @@ class ProfileProvider with ChangeNotifier {
     triggerLoad();
     Response? response =
         await ProfileServices().createFarmerProfile(profileData, token);
+    print('response: $response');
     if (response == null || response.statusCode != 200) {
       String errMsg = "";
       try {
@@ -52,6 +53,7 @@ class ProfileProvider with ChangeNotifier {
     triggerLoad();
     Response? response =
         await ProfileServices().createBuyerProfile(profileData, token);
+    print('response: $response');
     if (response == null || response.statusCode != 200) {
       String errMsg = "";
       try {
