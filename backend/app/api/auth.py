@@ -12,7 +12,7 @@ from fastapi.security import OAuth2PasswordBearer
 from pydantic import EmailStr
 
 from ..repositories.users import UsersRepository
-from ..schemas.users import UserCreate, UserLogin, UserUpdate, UserInfo, PasswordResetRequest, PasswordResetConfirm
+from ..schemas.users import UserCreate, UserLogin, UserUpdate, UserInfo, PasswordResetRequest, PasswordResetConfirm, UserEmail
 from ..database.database import get_db
 from ..utils.security import (
     hash_password,
@@ -41,12 +41,12 @@ SECRET_KEY = "Messi>Ronaldo"
 
 # Step 1: Initiate Registration
 @router.post("/users/register/initiate", status_code=200)
-def initiate_registration(user_input: UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
-    if user_input.role not in VALID_ROLES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid role: {user_input.role}. Allowed roles are: {', '.join(VALID_ROLES)}"
-        )
+def initiate_registration(user_input: UserEmail, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    # if user_input.role not in VALID_ROLES:
+    #     raise HTTPException(
+    #         status_code=400,
+    #         detail=f"Invalid role: {user_input.role}. Allowed roles are: {', '.join(VALID_ROLES)}"
+    #     )
     
     # Check if user already exists
     existing_user = users_repository.get_user_by_email_reg(db, user_input.email)
