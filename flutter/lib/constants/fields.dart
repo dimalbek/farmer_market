@@ -21,6 +21,7 @@ const String imagesField = 'images';
 const String quantityField = 'quantity';
 const String farmerIdField = 'farmer_id';
 const String productIdField = 'product_id';
+const String productNameField = 'product_name';
 const String imageUrlField = 'image_url';
 const String buyerIdField = 'buyer_id';
 const String totalPriceField = 'total_price';

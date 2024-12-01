@@ -1,3 +1,4 @@
+import 'package:farmer_app_2/constants/c_urls.dart';
 import 'package:farmer_app_2/constants/routes.dart';
 import 'package:farmer_app_2/screens/product_screen.dart';
 
@@ -29,12 +30,7 @@ class ProductCardWidget extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10.0),
-                  child: Image(
-                    image: getAssetImage(),
-                    height: 150,
-                    width: 150,
-                    fit: BoxFit.cover,
-                  ),
+                  child: getImage(),
                 ),
               ),
             ),
@@ -47,14 +43,18 @@ class ProductCardWidget extends StatelessWidget {
     );
   }
 
-  AssetImage getAssetImage() {
-    // try {
-    //   return AssetImage(
-    //     '$images_path${(product.images[0]['image_url'].toString()).substring(8)}',
-    //   );
-    // } catch (_) {
-    return const AssetImage('assets/alternative.jpg');
-    // }
+  Image getImage() {
+    try {
+      return Image.network(
+          '${CUrls.baseApiUrl}${product.images[0]['image_url']}');
+    } catch (e) {
+      return const Image(
+        image: AssetImage('assets/alternative.jpg'),
+        height: 150,
+        width: 150,
+        fit: BoxFit.cover,
+      );
+    }
   }
 }
 
@@ -82,7 +82,12 @@ class ProductInformation extends StatelessWidget {
             product.name,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),
           ),
-          Text(product.description),
+          Text(
+            product.description,
+            overflow: TextOverflow.ellipsis,
+            softWrap: true,
+            maxLines: 2,
+          ),
           Text(
             '${product.price} ₸',
             style: const TextStyle(fontSize: 18.0),
