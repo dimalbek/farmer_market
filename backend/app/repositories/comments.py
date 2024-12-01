@@ -1,7 +1,9 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+
 from ..database.models import Comment, Product, User
 from ..schemas.comments import CommentCreate, CommentInfo
+
 
 class CommentsRepository:
     def create_comment(

@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-from ..database.models import Product, CartItem
+
+from ..database.models import CartItem, Product
 
 
 class CartRepository:
@@ -12,14 +13,6 @@ class CartRepository:
             if product.quantity < item.quantity:
                 raise ValueError(
                     f"Insufficient stock for product {product.name}. Available: {product.quantity}, Requested: {item.quantity}")
-
-    def calculate_total(self, db: Session, cart_items: list):
-        """Calculate total price of the cart."""
-        total_price = 0.0
-        for item in cart_items:
-            product = db.query(Product).filter(Product.id == item.product_id).first()
-            total_price += product.price * item.quantity
-        return total_price
 
     def get_cart(self, db: Session, user_id: int):
         return (
@@ -60,3 +53,10 @@ class CartRepository:
             item.quantity = quantity
         db.commit()
         return item
+
+    def calculate_total(self, db: Session, cart_items: list):
+        """Calculate total price of the cart."""
+        total_price = 0.0
+        for cart_item, product in cart_items:
+            total_price += product.price * cart_item.quantity
+        return total_price

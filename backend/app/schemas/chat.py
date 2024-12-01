@@ -1,31 +1,30 @@
+from datetime import datetime
+from typing import List
+
 from pydantic import BaseModel
-from typing import List, Optional
 
 
-class MessageBase(BaseModel):
-    content: str
-
-
-class MessageCreate(MessageBase):
-    pass
-
-
-class MessageInfo(MessageBase):
+class MessageResponse(BaseModel):
+    id: int
+    chat_id: int
     sender_id: int
+    content: str
+    timestamp: datetime
 
 
-class ChatBase(BaseModel):
+    class Config:
+        from_attributes=True
+
+class ChatResponse(BaseModel):
+    id: int
     buyer_id: int
     farmer_id: int
 
+    class Config:
+        from_attributes = True
 
-class ChatCreate(ChatBase):
-    pass
-
-
-class ChatInfo(ChatBase):
-    id: int
-    messages: Optional[List[MessageInfo]] = []
+class ChatResponseWithMessages(ChatResponse):
+    messages: List[MessageResponse]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
