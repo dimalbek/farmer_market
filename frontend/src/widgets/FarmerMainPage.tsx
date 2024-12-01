@@ -15,7 +15,7 @@ export const FarmerMainPage = () => {
                     <LayoutListIcon size={32} />
                     <TypographyP className="!m-0 !p-0">My products</TypographyP>
                 </Link>
-                <Link href={'/product'} className="w-full flex flex-col justify-center items-center gap-1">
+                <Link href={'/chats'} className="w-full flex flex-col justify-center items-center gap-1">
                     <MessageCircle size={32} />
                     <TypographyP className="!m-0 !p-0">Messenger</TypographyP>
                 </Link>
