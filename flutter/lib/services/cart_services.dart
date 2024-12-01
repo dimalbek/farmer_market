@@ -88,8 +88,36 @@ class CartServices {
   Future<Response?> getCartTotal(String token) async {
     print("Api request...");
     try {
-      return dio.delete(
+      return dio.get(
         '${CUrls.baseApiUrl}/cart/total/',
+        options: Options(
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': 'Bearer $token',
+          },
+        ),
+      );
+    } on DioException catch (e) {
+      print(e.message.toString());
+      throw e.message.toString();
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  Future<Response?> updateCartItem(
+    String productId,
+    int quantity,
+    String token,
+  ) async {
+    print("Api request...");
+    try {
+      return dio.put(
+        '${CUrls.baseApiUrl}/cart/$productId',
+        data: {
+          productIdField: productId,
+          quantityField: quantity,
+        },
         options: Options(
           headers: {
             "Content-Type": "application/json",
