@@ -9,6 +9,7 @@ class AuthService {
 
   Future<Response?> login(String email, String password) async {
     try {
+      print("Api reuqest...");
       return await dio.post(
         '${CUrls.baseApiUrl}/auth/users/login',
         data: jsonEncode({'email': email, 'password': password}),
@@ -40,9 +41,14 @@ class AuthService {
         data: data,
         options: Options(contentType: Headers.jsonContentType),
       );
+      print('Api result: $res1');
       return res1;
     } on DioException catch (ex) {
+      print("Exception caught: ${ex.message}");
       return ex.response;
+    } catch (e) {
+      print("Exception caught: ${e.toString()}");
+      throw e.toString();
     }
   }
 }

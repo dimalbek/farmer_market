@@ -26,7 +26,7 @@ class ProductList extends StatelessWidget {
               );
             } else {
               return const Center(
-                child: Text('No data retreive'),
+                child: Text('No products'),
               );
             }
           } else {
