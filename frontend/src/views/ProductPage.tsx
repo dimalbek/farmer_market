@@ -3,7 +3,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TypographyH1, TypographyH3, TypographyP } from "@/components/ui/typography";
+import { TypographyH1, TypographyH3, TypographyP, TypographySmall } from "@/components/ui/typography";
 import { Product } from "@/lib/types/product";
 import { FarmerProfile } from "@/lib/types/profile";
 import { ImageCarousel } from "@/widgets/ImageCarousel";
@@ -21,8 +21,16 @@ interface Farmer  {
     role: "Admin" | "Buyer" | "Farmer";
 }
 
+interface Comment {
+    id: number;
+    content: string;
+    created_at: string;
+    author_id: number;
+  }
+  
 export const ProductPage = () => {
     const [product, setProduct] = useState<Product | null>(null);
+    const [comments, setComments] = useState<Comment[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
     const [farmerProfile, setFarmerProfile] = useState<FarmerProfile | null>(null);
@@ -126,6 +134,46 @@ export const ProductPage = () => {
         }
     }, [farmerProfile])
 
+    useEffect(() => {
+        const fetchComments = async () => {
+          try {
+            console.log("Fetching comments for product:", params.productId);
+      
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/comments/products/${params.productId}/comments`, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+              },
+            });
+      
+            console.log("Comments API response status:", response.status);
+      
+            if (response.ok) {
+              const data = await response.json();
+              console.log("Comments API response data:", data);
+              setComments(data.comments || []);
+            } else {
+              console.error("Failed to fetch comments. Response:", response);
+              toast({
+                title: 'Error',
+                description: 'Failed to fetch comments.',
+                variant: 'destructive',
+              });
+            }
+          } catch (error) {
+            console.error("Error fetching comments:", error);
+            toast({
+              title: 'Error',
+              description: 'An unexpected error occurred.',
+              variant: 'destructive',
+            });
+          }
+        };
+      
+        if (params.productId) fetchComments();
+      }, [params.productId, toast]);
+      
 
     const handleCreateChat = async () => {
         try {
@@ -214,7 +262,7 @@ const handleAddToCart = async () => {
     }
     
     return (
-        <div className="flex flex-col items-center gap-2 px-4">
+        <div className="flex flex-col items-center gap-2 overflow-scroll !pb-[100px] px-4">
             <ImageCarousel images={product?.images || []} width={256} height={256} />
             <div className="w-full flex flex-col items-start gap-2">
                 <TypographyH1>{product?.name}</TypographyH1>
@@ -240,8 +288,20 @@ const handleAddToCart = async () => {
                 <TypographyP>Location: {farmerProfile?.location}</TypographyP>
             </div>
             <div className="w-full flex flex-col items-start gap-1 mt-4 pt-4 border-t">
-                <TypographyH3>Feedback</TypographyH3>
+            <TypographyH3>Comments</TypographyH3>
+            {comments.length > 0 ? (
+             comments.map((comment) => (
+            <div key={comment.id} className="p-2 border border-gray-200 rounded-md mb-2">
+              <TypographyP>{comment.content}</TypographyP>
+              <TypographySmall className="text-gray-500">
+                {new Date(comment.created_at).toLocaleString()}
+              </TypographySmall>
             </div>
+          ))
+        ) : (
+          <TypographyP>No comments available for this product.</TypographyP>
+        )}
+      </div>
             <div className="fixed bottom-0 left-0 w-full h-max flex items-center gap-2 p-2 !pb-4 bg-[white] shadow-md border-t">
                 <Button variant="outline" className="w-full mt-4" onClick={handleCreateChat}>Chat</Button>
                 <Button variant="outline" className="w-full mt-4" onClick={handleAddToCart}>Add to Cart</Button>
