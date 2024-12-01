@@ -1,5 +1,4 @@
-import pytest
-from app.utils.security import hash_password
+
 
 def test_signup(client, db):
     user_data = {

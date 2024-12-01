@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
-from ..database.models import Product, CartItem
+
+from ..database.models import CartItem, Product
 
 
 class CartRepository:

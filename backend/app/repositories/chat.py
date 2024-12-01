@@ -1,5 +1,7 @@
 from sqlalchemy.orm import Session
+
 from ..database.models import Chat, Message
+
 
 class ChatRepository:
     def get_chat_by_id(self, db: Session, chat_id: int) -> Chat:

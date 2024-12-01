@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from ..schemas.cart import Cart
+
+from ..database.database import get_db
 from ..repositories.cart import CartRepository
 from ..utils.security import decode_jwt_token
-from ..database.database import get_db
-from fastapi.security import OAuth2PasswordBearer
 
 router = APIRouter()
 cart_repository = CartRepository()

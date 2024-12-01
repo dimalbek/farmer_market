@@ -3,13 +3,14 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+
 from ..database.database import get_db
 from ..repositories.buyers import BuyersRepository
 from ..repositories.farmers import FarmersRepository
 from ..repositories.users import UsersRepository
-from ..schemas.buyers import BuyerProfileWithUserInfo, BuyerProfileInfo
-from ..schemas.farmers import FarmerInfo
-from ..schemas.users import FarmerProfileInfo, ProfileInfo, UserInfo, UserUpdate
+from ..schemas.buyers import BuyerProfileInfo, BuyerProfileWithUserInfo
+from ..schemas.users import (FarmerProfileInfo, ProfileInfo, UserInfo,
+                             UserUpdate)
 from ..utils.security import decode_jwt_token
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/users/login")

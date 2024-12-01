@@ -1,21 +1,25 @@
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
-from sqlalchemy.orm import Session
 from typing import List
-from ..database.database import get_db
-from ..utils.security import get_current_user_websocket, get_current_user
-from ..repositories.chat import ChatRepository
-from ..repositories.users import UsersRepository
-from ..database.models import User
-from ..schemas.chat import MessageResponse, ChatResponse, ChatResponseWithMessages
-from ..utils.connection_manager import ConnectionManager
+
+from fastapi import (APIRouter, Depends, HTTPException, WebSocket,
+                     WebSocketDisconnect)
 from fastapi.encoders import jsonable_encoder
 from fastapi.websockets import WebSocketState
+from sqlalchemy.orm import Session
+
+from ..database.database import get_db
+from ..database.models import User
+from ..repositories.chat import ChatRepository
+from ..repositories.users import UsersRepository
+from ..schemas.chat import (ChatResponse, ChatResponseWithMessages,
+                            MessageResponse)
+from ..utils.connection_manager import ConnectionManager
+from ..utils.security import get_current_user, get_current_user_websocket
+
 router = APIRouter()
 chat_repository = ChatRepository()
 users_repository = UsersRepository()
 manager = ConnectionManager()
 import logging
-
 
 logging.basicConfig(
     level=logging.INFO,  # Записывать все логи уровня INFO и выше

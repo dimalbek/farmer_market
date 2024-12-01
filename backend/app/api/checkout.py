@@ -1,12 +1,13 @@
 # api/checkout.py
+import stripe
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
+
+from ..config import STRIPE_SECRET_KEY
+from ..database.database import get_db
 from ..repositories.cart import CartRepository
 from ..utils.security import decode_jwt_token
-from ..database.database import get_db
-from fastapi.security import OAuth2PasswordBearer
-import stripe
-from ..config import STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY
 
 router = APIRouter()
 cart_repository = CartRepository()

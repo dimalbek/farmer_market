@@ -1,33 +1,25 @@
-import os
 import smtplib
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Response, HTTPException, Form, status, BackgroundTasks
+from app.config import MAIL_PASSWORD, MAIL_USERNAME
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordBearer
-from pydantic import EmailStr
 
-from ..repositories.users import UsersRepository
-from ..schemas.users import UserCreate, UserLogin, UserUpdate, UserInfo, PasswordResetRequest, PasswordResetConfirm
 from ..database.database import get_db
-from ..utils.security import (
-    hash_password,
-    verify_password,
-    create_jwt_token,
-    decode_jwt_token,
-)
-
-from ..schemas.verification_code import VerificationCodeCreate, VerificationCodeVerify, UserRegistrationData
+from ..repositories.users import UsersRepository
+from ..schemas.users import (PasswordResetConfirm, PasswordResetRequest,
+                             UserCreate, UserInfo, UserLogin, UserUpdate)
+from ..schemas.verification_code import (UserRegistrationData,
+                                         VerificationCodeCreate,
+                                         VerificationCodeVerify)
 from ..utils.email_utils import send_email
-from app.config import (
-    MAIL_USERNAME,
-    MAIL_PASSWORD,
-)
-
+from ..utils.security import (create_jwt_token, decode_jwt_token,
+                              hash_password, verify_password)
 
 router = APIRouter()
 users_repository = UsersRepository()
