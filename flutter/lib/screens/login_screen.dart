@@ -43,9 +43,9 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(
-              'FLUTTER LOGIN',
-              style: Theme.of(context).textTheme.titleSmall,
+            const Text(
+              'Login',
+              style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
             ),
             const SizedBox(
               height: 20.0,
@@ -94,9 +94,42 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(
                       height: 20.0,
                     ),
-                    Row(
+                    Column(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        AbsorbPointer(
+                          absorbing: isLoading,
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
+                                foregroundColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
+                              ),
+                              onPressed: () async {
+                                if (_formkey.currentState!.validate()) {
+                                  context.read<AuthProvider>().login(
+                                        emailController.text,
+                                        passwordController.text,
+                                        context,
+                                      );
+                                }
+                              },
+                              child: isLoading
+                                  ? Container(
+                                      constraints: const BoxConstraints(
+                                          maxHeight: 20.0, maxWidth: 20.0),
+                                      child: const CircularProgressIndicator(
+                                        backgroundColor: Colors.white,
+                                      ),
+                                    )
+                                  : const Text('Login'),
+                            ),
+                          ),
+                        ),
                         AbsorbPointer(
                           absorbing: isLoading,
                           child: TextButton(
@@ -108,32 +141,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         AbsorbPointer(
                           absorbing: isLoading,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.primary,
-                              foregroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .primaryContainer,
-                            ),
-                            onPressed: () async {
-                              if (_formkey.currentState!.validate()) {
-                                context.read<AuthProvider>().login(
-                                      emailController.text,
-                                      passwordController.text,
-                                      context,
-                                    );
-                              }
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushNamed(resetPasswordRoute);
                             },
-                            child: isLoading
-                                ? Container(
-                                    constraints: const BoxConstraints(
-                                        maxHeight: 20.0, maxWidth: 20.0),
-                                    child: const CircularProgressIndicator(
-                                      backgroundColor: Colors.white,
-                                    ),
-                                  )
-                                : const Text('Login'),
+                            child: const Text('Forgot your password ?'),
                           ),
                         ),
                       ],

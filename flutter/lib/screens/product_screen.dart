@@ -6,6 +6,7 @@ import 'package:farmer_app_2/providers/auth_provider.dart';
 import 'package:farmer_app_2/providers/cart_provider.dart';
 import 'package:farmer_app_2/providers/chat_provider.dart';
 import 'package:farmer_app_2/screens/register_screen.dart';
+import 'package:farmer_app_2/screens/root_screen.dart';
 import 'package:farmer_app_2/widgets/toast_message.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -162,6 +163,15 @@ class _ProductScreenState extends State<ProductScreen> {
                                 getUser(context).token,
                                 widget.product.farmerId,
                               );
+                          successToast('Chat has been created');
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const RootScreen(
+                                selectedIndex: 3,
+                              ),
+                            ),
+                            (route) => false,
+                          );
                         } catch (e) {
                           failToast(e.toString());
                         }

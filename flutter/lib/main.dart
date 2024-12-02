@@ -1,12 +1,9 @@
-import 'package:dio/dio.dart';
-import 'package:farmer_app_2/constants/c_urls.dart';
 import 'package:farmer_app_2/constants/routes.dart';
 import 'package:farmer_app_2/providers/cart_provider.dart';
 import 'package:farmer_app_2/providers/chat_provider.dart';
 import 'package:farmer_app_2/providers/profile_provider.dart';
-import 'package:farmer_app_2/screens/home_screen.dart';
 import 'package:farmer_app_2/screens/login_screen.dart';
-import 'package:farmer_app_2/screens/product_screen.dart';
+import 'package:farmer_app_2/screens/reset_screen.dart';
 import 'package:farmer_app_2/screens/root_screen.dart';
 import 'package:farmer_app_2/screens/register_screen.dart';
 
@@ -47,12 +44,12 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           textTheme: const TextTheme(),
         ),
-        // home: const Scaffold(body: HomeScreen()),
         home: const Wrapper(),
         routes: {
           loginRoute: (context) => const LoginScreen(),
           registerRoute: (context) => const RegisterScreen(),
           rootRoute: (context) => const RootScreen(),
+          resetPasswordRoute: (context) => const ResetScreen(),
         },
       ),
     );
