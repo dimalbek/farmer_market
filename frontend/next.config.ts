@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['f35a-87-255-216-75.ngrok-free.app'],
+    domains: ['193c-87-255-216-86.ngrok-free.app'],
   },
 };
 
