@@ -2,9 +2,11 @@ import 'package:farmer_app_2/constants/fields.dart';
 import 'package:farmer_app_2/constants/routes.dart';
 import 'package:farmer_app_2/providers/profile_provider.dart';
 import 'package:farmer_app_2/screens/root_screen.dart';
+import 'package:farmer_app_2/widgets/pinput.dart';
 import 'package:farmer_app_2/widgets/toast_message.dart';
 import 'package:flutter/material.dart';
 import 'package:phonenumbers/phonenumbers.dart';
+import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
@@ -25,9 +27,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   late final PhoneNumberEditingController _phoneNumberController;
   late final TextEditingController _passwordController;
   late final TextEditingController _repeatPasswordController;
+  late final TextEditingController _pinController;
 
   late final dynamic _registerFormKey;
   late final dynamic _roleFormKey;
+  late final dynamic _pinFormKey;
 
   late final TextEditingController _farmName;
   late final TextEditingController _location;
@@ -35,24 +39,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   late final TextEditingController _deliveryAddress;
 
+  late final FocusNode pinFocusNode;
+
   int index = 0;
 
   @override
   void initState() {
     _registerFormKey = GlobalKey<FormState>();
     _roleFormKey = GlobalKey<FormState>();
+    _pinFormKey = GlobalKey<FormState>();
 
     _nameController = TextEditingController();
     _emailController = TextEditingController();
     _phoneNumberController = PhoneNumberEditingController();
     _passwordController = TextEditingController();
     _repeatPasswordController = TextEditingController();
+    _pinController = TextEditingController();
 
     _farmName = TextEditingController();
     _location = TextEditingController();
     _farmSize = TextEditingController();
 
     _deliveryAddress = TextEditingController();
+
+    pinFocusNode = FocusNode();
     super.initState();
   }
 
@@ -90,9 +100,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void generalRegister(BuildContext context) async {
     try {
-      bool registered = await context.read<AuthProvider>().register({
+      bool registered = await context.read<AuthProvider>().confirmRegister({
         fullnameField: _nameController.text,
         emailField: _emailController.text,
+        codeField: _pinController.text,
         phoneField: _phoneNumberController.value.toString(),
         passwordField: _passwordController.text,
         roleField: role,
@@ -204,11 +215,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
+      Step(
+        state: index > 2 ? StepState.complete : StepState.indexed,
+        isActive: index >= 2,
+        title: const Text('Email confirmation'),
+        content: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Form(
+            key: _pinFormKey,
+            child: Pinput(
+              length: 6,
+              controller: _pinController,
+              focusNode: pinFocusNode,
+              defaultPinTheme: defaultPinTheme,
+              separatorBuilder: (index) => const SizedBox(width: 16),
+              focusedPinTheme: focusPinTheme,
+              showCursor: true,
+              cursor: cursor,
+            ),
+          ),
+        ),
+      ),
     ];
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<AuthProvider>().isLoading;
     return Scaffold(
       appBar: AppBar(title: const Text("Registration")),
       body: Stepper(
@@ -222,20 +255,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
             });
           }
         },
-        onStepContinue: () {
+        onStepContinue: () async {
           if (index == 0) {
             if (_registerFormKey.currentState!.validate()) {
               setState(() {
                 index += 1;
               });
             }
-          }
-          if (index == 1) {
+          } else if (index == 1) {
             if (_roleFormKey.currentState!.validate() &&
                 _registerFormKey.currentState!.validate()) {
-              print("register");
+              try {
+                await context.read<AuthProvider>().initiateRegistration(
+                      _emailController.text,
+                    );
+                successToast('Confirmation code has been sent to your email');
+              } catch (e) {
+                failToast(e.toString());
+              }
+              setState(() {
+                index += 1;
+              });
+            }
+          } else if (index == 2) {
+            if (_roleFormKey.currentState!.validate() &&
+                _registerFormKey.currentState!.validate()) {
               generalRegister(context);
-              // implement registration and profile
             }
           }
         },
@@ -252,14 +297,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ? Container()
                   : const SizedBox(width: 10.0),
               Expanded(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Theme.of(context).secondaryHeaderColor,
+                child: AbsorbPointer(
+                  absorbing: isLoading,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Theme.of(context).secondaryHeaderColor,
+                    ),
+                    onPressed: details.onStepContinue,
+                    child: !isLoading
+                        ? Text(
+                            details.currentStep == 2 ? "Register" : "Continue")
+                        : Container(
+                            constraints: const BoxConstraints(
+                                maxHeight: 20.0, maxWidth: 20.0),
+                            child: const CircularProgressIndicator(
+                              backgroundColor: Colors.white,
+                            ),
+                          ),
                   ),
-                  onPressed: details.onStepContinue,
-                  child:
-                      Text(details.currentStep == 1 ? "Register" : "Continue"),
                 ),
               ),
             ],

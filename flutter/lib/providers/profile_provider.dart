@@ -64,7 +64,6 @@ class ProfileProvider with ChangeNotifier {
       failToast(errMsg);
     }
     if (response != null) {
-      successToast(response.toString());
       triggerLoad();
       notifyListeners();
       return true;
