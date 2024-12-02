@@ -15,13 +15,15 @@ export const MainPage = () => {
 
     return (
         <main className="relative w-full h-screen">
-            {/* Background Image */}
-            <Image
-                src="/images/background.jpg" // Replace with your background image path
-                alt="Background"
-                fill // Makes the image cover the parent element
-                className="object-cover -z-10" // Ensures it stays in the background
-            />
+            {/* Conditionally Render Background Image */}
+            {!user && (
+                <Image
+                    src="/images/background.jpg" // Replace with your background image path
+                    alt="Background"
+                    fill // Makes the image cover the parent element
+                    className="object-cover -z-10" // Ensures it stays in the background
+                />
+            )}
 
             <div className="m-auto w-full max-w-[500px] flex flex-col items-center gap-2 p-4">
                 {user?.role === "Admin" && (
