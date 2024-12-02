@@ -1,5 +1,5 @@
 import 'package:farmer_app_2/screens/cart_screen.dart';
-import 'package:farmer_app_2/screens/chat_screen.dart';
+import 'package:farmer_app_2/screens/chats_screen.dart';
 import 'package:farmer_app_2/screens/home_screen.dart';
 import 'package:farmer_app_2/screens/profile_screen.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,7 @@ class _RootScreenState extends State<RootScreen> {
     const ProfileScreen(),
     const HomeScreen(),
     const CartScreen(),
-    const ChatScreen(),
+    const ChatsScreen(),
   ];
 
   @override
