@@ -97,4 +97,46 @@ class AuthService {
       throw e.toString();
     }
   }
+
+  Future<Response?> initiatePasswordReset(String email) async {
+    print('Initiating registration...');
+    try {
+      return await dio.post(
+        '${CUrls.baseApiUrl}/auth/users/password-reset/initiate',
+        data: {emailField: email},
+        options: Options(contentType: Headers.jsonContentType),
+      );
+    } on DioException catch (ex) {
+      print("Exception caught: ${ex.message}");
+      return ex.response;
+    } catch (e) {
+      print("Exception caught: ${e.toString()}");
+      throw e.toString();
+    }
+  }
+
+  Future<Response?> confirmPasswordReset(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    print('Initiating registration...');
+    try {
+      return await dio.post(
+        '${CUrls.baseApiUrl}/auth/users/password-reset/confirm',
+        data: {
+          emailField: email,
+          codeField: code,
+          newPasswordField: newPassword,
+        },
+        options: Options(contentType: Headers.jsonContentType),
+      );
+    } on DioException catch (ex) {
+      print("Exception caught: ${ex.message}");
+      return ex.response;
+    } catch (e) {
+      print("Exception caught: ${e.toString()}");
+      throw e.toString();
+    }
+  }
 }

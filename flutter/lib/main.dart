@@ -3,6 +3,7 @@ import 'package:farmer_app_2/providers/cart_provider.dart';
 import 'package:farmer_app_2/providers/chat_provider.dart';
 import 'package:farmer_app_2/providers/profile_provider.dart';
 import 'package:farmer_app_2/screens/login_screen.dart';
+import 'package:farmer_app_2/screens/reset_screen.dart';
 import 'package:farmer_app_2/screens/root_screen.dart';
 import 'package:farmer_app_2/screens/register_screen.dart';
 
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
           loginRoute: (context) => const LoginScreen(),
           registerRoute: (context) => const RegisterScreen(),
           rootRoute: (context) => const RootScreen(),
+          resetPasswordRoute: (context) => const ResetScreen(),
         },
       ),
     );

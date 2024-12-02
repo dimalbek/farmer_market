@@ -35,6 +35,7 @@ const String senderIdField = 'sender_id';
 const String messagesField = 'messages';
 const String timestampField = 'timestamp';
 const String codeField = 'code';
+const String newPasswordField = 'new_password';
 
 List<String> categoryList = [
   'Seeds',
