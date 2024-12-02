@@ -21,10 +21,11 @@ class PostService {
     }
   }
 
-  Future<Response?> searchProduct(String searchKey) async {
+  Future<Response?> searchProduct(
+      String searchKey, String searchCategory) async {
     try {
-      return await dio
-          .get('https://nehryrestapi.herokuapp.com/searchpost/$searchKey');
+      return await dio.get('${CUrls.baseApiUrl}/products/search',
+          queryParameters: {'name': searchKey, categoryField: searchCategory});
     } on DioException catch (err) {
       return err.response;
     } catch (error, stacktrace) {

@@ -9,15 +9,32 @@ import '../services/product_service.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class ProductProvider with ChangeNotifier {
-  Future<List<Product>> getAllProducts() async {
+  Future<List<Product?>> getAllProducts() async {
     print("Getting all products");
     try {
       Response? res = await PostService().getAllProducts();
-      print(res);
       if (res != null) {
         print("Decoding json list...");
         final List<dynamic> products = res.data;
-        final listRes = products.map((e) => Product.fromJson(e)).toList();
+        List<Product?> listRes =
+            products.map((e) => Product.fromJson(e)).toList();
+        print('_searchCategory.isNotEmpty: ${_searchKey.isNotEmpty}');
+        print('_searchCategory: $_searchKey');
+        if (_searchKey.isNotEmpty) {
+          listRes = listRes.map((e) {
+            print(e?.name);
+            return e!.name.toLowerCase().contains(_searchKey.toLowerCase())
+                ? e
+                : null;
+          }).toList();
+        }
+        if (_searchCategory.isNotEmpty) {
+          listRes = listRes.map((e) {
+            print(e?.name);
+            return e!.category == _searchCategory ? e : null;
+          }).toList();
+        }
+        print(listRes);
         return listRes;
       } else {
         throw "No products";
@@ -28,21 +45,64 @@ class ProductProvider with ChangeNotifier {
     }
   }
 
+  bool searched() {
+    if (_searchKey.isNotEmpty || _searchCategory.isNotEmpty) return true;
+    return false;
+  }
+
   String _searchKey = '';
 
   String get searchKey => _searchKey;
 
+  String _searchCategory = '';
+
+  String get searchCategory => _searchCategory;
+
   void search(String search) {
+    print('Search: $search');
     _searchKey = search;
     notifyListeners();
   }
 
-  Future<List<Product>> searchPost() async {
-    Response? res = await PostService().searchProduct(_searchKey);
-    if (res != null) {
-      return (res.data as List).map((data) => Product.fromJson(data)).toList();
-    } else {
-      return res!.data;
+  void categorySearch(String category) {
+    print('Category: $category');
+    _searchCategory = category;
+    notifyListeners();
+  }
+
+  Future<List<Product?>?> searchProducts() async {
+    print("Search product called");
+    try {
+      triggerLoad();
+      Response? res = await PostService().searchProduct(
+        _searchKey,
+        _searchCategory,
+      );
+      triggerLoad();
+      print(res);
+      if (res != null && res.statusCode == 200) {
+        print("Decoding json list...");
+        final List<dynamic> products = res.data;
+        List<Product?> listRes =
+            products.map((e) => Product.fromJson(e)).toList();
+        if (_searchKey.isNotEmpty) {
+          listRes = listRes
+              .map((e) => e!.name.contains(_searchKey) ? e : null)
+              .toList();
+        }
+        return listRes;
+      } else {
+        String errMsg = '';
+        try {
+          errMsg = res!.data['detail'];
+        } catch (e) {
+          errMsg = e.toString();
+        }
+        throw errMsg;
+      }
+    } catch (e) {
+      print("Error occured: ${e.toString()}");
+      throw e.toString();
     }
   }
 
