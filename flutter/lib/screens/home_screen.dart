@@ -56,6 +56,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.search),
                         onPressed: () {
+                          print(
+                              'Products were searched: ${context.read<ProductProvider>().searched()}');
                           context.read<ProductProvider>().search(_search.text);
                         },
                       ),
