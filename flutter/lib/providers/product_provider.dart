@@ -65,7 +65,7 @@ class ProductProvider with ChangeNotifier {
   }
 
   void categorySearch(String category) {
-    print('Category: $category');
+    print('Search: $category');
     _searchCategory = category;
     notifyListeners();
   }

@@ -1,3 +1,4 @@
+import 'package:farmer_app_2/constants/fields.dart';
 import 'package:farmer_app_2/constants/routes.dart';
 import 'package:farmer_app_2/models/user.dart';
 import 'package:flutter/gestures.dart';
@@ -28,6 +29,20 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     user = getUser(context);
     super.initState();
+  }
+
+  List<TextButton> getCategories() {
+    List<TextButton> list = [];
+    for (final String category in categoryList) {
+      list.add(TextButton(
+        onPressed: () {
+          context.read<ProductProvider>().categorySearch(category);
+          setState(() {});
+        },
+        child: Text(category),
+      ));
+    }
+    return list;
   }
 
   @override
@@ -81,7 +96,17 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        body: const ProductList(),
+        body: Column(
+          children: [
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: getCategories(),
+              ),
+            ),
+            Expanded(child: const ProductList()),
+          ],
+        ),
         floatingActionButton: user?.role == 'Farmer'
             ? FloatingActionButton(
                 onPressed: () {
