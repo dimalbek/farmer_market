@@ -143,6 +143,10 @@ const CartView = () => {
       setError("An error occurred while updating the quantity.");
     }
   };
+
+  const handleProductDetails = (productId: number) => {
+    router.push(`/products/${productId}`);
+  };  
   
   const handleClearCart = async () => {
     try {
@@ -211,13 +215,22 @@ const CartView = () => {
                 </Button>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleRemoveItem(item.product_id)}
-            >
-              Remove
-            </Button>
+            <div className="flex flex-col items-end gap-2">
+      <Button
+        variant="default"
+        size="sm"
+        onClick={() => handleProductDetails(item.product_id)}
+      >
+        View Details
+      </Button>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => handleRemoveItem(item.product_id)}
+      >
+        Remove
+      </Button>
+    </div>
           </div>
         ))
       ) : (
