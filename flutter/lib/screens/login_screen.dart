@@ -139,6 +139,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: const Text('Not Registered Yet ?'),
                           ),
                         ),
+                        AbsorbPointer(
+                          absorbing: isLoading,
+                          child: TextButton(
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushNamed(resetPasswordRoute);
+                            },
+                            child: const Text('Forgot your password ?'),
+                          ),
+                        ),
                       ],
                     )
                   ],

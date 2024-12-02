@@ -171,7 +171,57 @@ class AuthProvider with ChangeNotifier {
 
     try {
       if (res!.data != null && res.statusCode == 200) {
-        return res!.data['message'];
+        return res.data['message'];
+      }
+      String errMsg = '';
+      try {
+        errMsg = res.data['detail'];
+      } catch (e) {
+        errMsg = e.toString();
+      }
+      throw errMsg;
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  Future<String> initiatePasswordReset(String email) async {
+    triggerLoad();
+    var res = await AuthService().initiatePasswordReset(email);
+    triggerLoad();
+
+    try {
+      if (res!.data != null && res.statusCode == 200) {
+        return res.data['message'];
+      }
+      String errMsg = '';
+      try {
+        errMsg = res.data['detail'];
+      } catch (e) {
+        errMsg = e.toString();
+      }
+      throw errMsg;
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  Future<String> confirmPasswordReset(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    triggerLoad();
+    var res = await AuthService().confirmPasswordReset(
+      email,
+      code,
+      newPassword,
+    );
+    triggerLoad();
+
+    try {
+      if (res!.data != null && res.statusCode == 200) {
+        return res.data['message'];
       }
       String errMsg = '';
       try {
