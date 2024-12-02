@@ -3,6 +3,7 @@ import 'package:farmer_app_2/constants/fields.dart';
 import 'package:farmer_app_2/constants/routes.dart';
 import 'package:farmer_app_2/widgets/toast_message.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/user.dart';
 import '../services/auth_services.dart';
 import 'package:flutter/material.dart';
@@ -84,6 +85,34 @@ class AuthProvider with ChangeNotifier {
     return token;
   }
 
+  Future<bool> confirmRegister(Map<String, dynamic> loginData) async {
+    triggerLoad();
+    Response? userdata = await AuthService().register(loginData);
+    print('userdata: $userdata');
+    if (userdata == null || userdata.statusCode != 200) {
+      String errMsg = "";
+      try {
+        errMsg = userdata!.data["detail"][0]["msg"];
+      } catch (_) {
+        errMsg = "Error: ${userdata!.data.toString()}";
+      }
+      triggerLoad();
+      failToast(errMsg);
+      return false;
+    }
+    print(userdata);
+    if (userdata.data['message'] != "Successfully signed up.") {
+      failToast(userdata.data['detail']);
+      triggerLoad();
+      _isLoading = false;
+      return false;
+    } else {
+      triggerLoad();
+      _isLoading = false;
+      return true;
+    }
+  }
+
   Future<bool> register(Map<String, dynamic> loginData) async {
     triggerLoad();
     Response? userdata = await AuthService().register(loginData);
@@ -122,6 +151,37 @@ class AuthProvider with ChangeNotifier {
       return userData;
     } else {
       return null;
+    }
+  }
+
+  Future<User?> getUserById(String userId) async {
+    // notifyListeners();
+    var res = await AuthService().getUser(userId);
+    if (res!.data['id'] != null) {
+      return User.fromJson(res.data);
+    } else {
+      return null;
+    }
+  }
+
+  Future<String> initiateRegistration(String email) async {
+    triggerLoad();
+    var res = await AuthService().initiateRegistration(email);
+    triggerLoad();
+
+    try {
+      if (res!.data != null && res.statusCode == 200) {
+        return res!.data['message'];
+      }
+      String errMsg = '';
+      try {
+        errMsg = res.data['detail'];
+      } catch (e) {
+        errMsg = e.toString();
+      }
+      throw errMsg;
+    } catch (e) {
+      throw e.toString();
     }
   }
 
