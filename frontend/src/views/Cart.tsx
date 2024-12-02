@@ -112,17 +112,15 @@ const CartView = () => {
     try {
       const token = JSON.parse(localStorage.getItem("token") || "{}");
   
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND}/cart/${productId}?quantity=${quantity}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${token.access_token}`,
-            "ngrok-skip-browser-warning": "true",
-            "Content-Type": "application/json",  
-          },
-        }
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND}/cart/`, {
+        method: "POST", // Use POST as per the API documentation
+        headers: {
+          Authorization: `Bearer ${token.access_token}`,
+          "ngrok-skip-browser-warning": "true",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ product_id: productId, quantity }), // Match the API payload structure
+      });
   
       if (response.ok) {
         setCartItems((prev) =>
@@ -133,8 +131,7 @@ const CartView = () => {
   
         const updatedItem = cartItems.find((item) => item.product_id === productId);
         setCartTotal((prev) =>
-          prev +
-          ((quantity - updatedItem!.quantity) * updatedItem!.price)
+          prev + (quantity - updatedItem!.quantity) * updatedItem!.price
         );
       } else {
         setError("Failed to update item quantity.");
@@ -143,6 +140,7 @@ const CartView = () => {
       setError("An error occurred while updating the quantity.");
     }
   };
+  
 
   const handleProductDetails = (productId: number) => {
     router.push(`/products/${productId}`);
