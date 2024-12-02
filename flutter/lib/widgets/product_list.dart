@@ -11,18 +11,18 @@ class ProductList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(20.0),
-      child: FutureBuilder<List<Product>>(
-        future: context.watch<ProductProvider>().searchKey.isEmpty
-            ? context.watch<ProductProvider>().getAllProducts()
-            : context.watch<ProductProvider>().searchPost(),
+      child: FutureBuilder<List<Product?>>(
+        future: context.watch<ProductProvider>().getAllProducts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.data!.isNotEmpty) {
+            if (snapshot.data!.isNotEmpty && snapshot.data != null) {
               return ListView.builder(
                 itemCount: snapshot.data?.length,
-                itemBuilder: (_, i) => ProductCardWidget(
-                  product: snapshot.data![i],
-                ),
+                itemBuilder: (_, i) => snapshot.data![i] != null
+                    ? ProductCardWidget(
+                        product: snapshot.data![i]!,
+                      )
+                    : Container(),
               );
             } else {
               return const Center(

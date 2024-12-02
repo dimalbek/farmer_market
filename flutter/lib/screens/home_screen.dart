@@ -1,3 +1,4 @@
+import 'package:farmer_app_2/constants/fields.dart';
 import 'package:farmer_app_2/constants/routes.dart';
 import 'package:farmer_app_2/models/user.dart';
 import 'package:flutter/gestures.dart';
@@ -30,6 +31,20 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
+  List<TextButton> getCategories() {
+    List<TextButton> list = [];
+    for (final String category in categoryList) {
+      list.add(TextButton(
+        onPressed: () {
+          context.read<ProductProvider>().categorySearch(category);
+          setState(() {});
+        },
+        child: Text(category),
+      ));
+    }
+    return list;
+  }
+
   @override
   Widget build(BuildContext context) {
     return AbsorbPointer(
@@ -56,6 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       suffixIcon: IconButton(
                         icon: const Icon(Icons.search),
                         onPressed: () {
+                          print(
+                              'Products were searched: ${context.read<ProductProvider>().searched()}');
                           context.read<ProductProvider>().search(_search.text);
                         },
                       ),
@@ -79,7 +96,17 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        body: const ProductList(),
+        body: Column(
+          children: [
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: getCategories(),
+              ),
+            ),
+            Expanded(child: const ProductList()),
+          ],
+        ),
         floatingActionButton: user?.role == 'Farmer'
             ? FloatingActionButton(
                 onPressed: () {
