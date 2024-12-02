@@ -39,17 +39,21 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     User user = context.read<AuthProvider>().user!;
-    print('============================================================');
-    print(
-        '${CUrls.baseWSUrl}/chats/ws/chat/${widget.chatId}?token=${user.token}');
-    channel = IOWebSocketChannel.connect(Uri.parse(
-        '${CUrls.baseWSUrl}/chats/ws/chat/${widget.chatId}?token=${user.token}'));
+    try {
+      print(
+          '${CUrls.baseApiUrl}/chats/ws/chat/${widget.chatId}?token=${user.token}');
+      channel = IOWebSocketChannel.connect(Uri.parse(
+          '${CUrls.baseApiUrl}/chat/ws/chat/${widget.chatId}?token=${user.token}'));
+    } catch (e) {
+      print(e.toString());
+    }
     super.initState();
   }
 
   Future<void> testWS() async {
     try {
       await channel.ready;
+      print('WHAATTT');
     } on SocketException catch (e) {
       print('=====================\n${e.toString()}\n=============');
       // Handle the exception.
