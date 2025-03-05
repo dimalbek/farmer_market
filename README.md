@@ -130,7 +130,7 @@ Farmus offers:
 │   └── test_profiles.py
 └── uploaded_images
 
-
+```
 ## **Installation**
 
 1. **Clone the Repository**:
