@@ -1,4 +1,4 @@
-# Farmus (Working Title)
+# Farmus
 
 **Farmus** is an e-commerce platform designed primarily for farmers (to sell products), buyers (to purchase products), and admins (to manage the system). It features user authentication with two-factor registration, password reset workflows, product listings with images, cart/checkout flows, order management, a real-time chat system, and more.
 
@@ -136,7 +136,7 @@ Farmus offers:
 1. **Clone the Repository**:
     ```bash
     git clone https://github.com/dimalbek/farmer_market.git
-    cd farmer_market
+    cd farmer_market/backend
     ```
 
 2. **Set up a Virtual Environment (optional but recommended)**:
